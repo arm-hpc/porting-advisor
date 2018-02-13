@@ -46,10 +46,10 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.root):
-        print(_('%s: directory not found.') % args.output, file=sys.stderr)
+        print(_('%s: directory not found.') % args.root, file=sys.stderr)
         sys.exit(1)
     elif not os.path.isdir(args.root):
-        print(_('%s: not a directory.') % args.output, file=sys.stderr)
+        print(_('%s: not a directory.') % args.root, file=sys.stderr)
         sys.exit(1)
 
     if not args.output:

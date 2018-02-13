@@ -18,6 +18,7 @@ SPDX-License-Identifier: Apache-2.0
 
 from jinja2 import Environment, PackageLoader
 from .report import Report
+import os
 
 
 class HtmlReport(Report):
@@ -30,5 +31,7 @@ class HtmlReport(Report):
         )
         template = env.get_template('advice.html')
         rendered = template.render(
-            root_directory=self.root_directory, items=items)
+            root_directory=self.root_directory,
+            root_directory_basename=os.path.basename(self.root_directory),
+            items=items)
         output_file.write(rendered)

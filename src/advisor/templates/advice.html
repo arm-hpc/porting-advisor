@@ -18,7 +18,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 <html>
  <head>
-  <title>Porting Readiness Report for aarch64</title>
+  <title>aarch64 Porting Readiness Report for {{ root_directory_basename }}</title>
   <meta charset="UTF-8">
   <style>
 body {
@@ -69,7 +69,7 @@ td {
    </svg>
   </div>
   <header>
-   <span class="name">Porting Readiness Report for aarch64</span>
+   <span class="name">aarch64 Porting Readiness Report for {{ root_directory_basename }}</span>
   </header>
   <section class="root">
    Source Root: <span class="root_directory">{{ root_directory }}</span>
@@ -77,7 +77,7 @@ td {
   <section class="advice">
    <table>
     {% for item in items %}
-     <tr><td><svg class="icon"><use xlink:href="#{{ item.type }}"></use></svg></td><td>{{ item.filename if item.filename else '' }}{{ ':' if item.lineno else '' }}{{ item.lineno if item.lineno else '' }}{{ ': ' if item.filename else '' }}{{ item.description }}</td></tr>
+     <tr><td><svg class="icon"><use xlink:href="#{{ item.item_type }}"></use></svg></td><td>{{ item.filename if item.filename else '' }}{{ ':' if item.lineno else '' }}{{ item.lineno if item.lineno else '' }}{{ ': ' if item.filename else '' }}{{ item.description }}</td></tr>
     {% endfor %}
    </table>
   </section>

@@ -26,7 +26,7 @@ class ReportItem:
     NEGATIVE = 'negative'
     ERROR = 'error'
     TYPES = [SUMMARY, POSITIVE,
-             NEUTRAL, NEGATIVE,
+             NEGATIVE, NEUTRAL,
              ERROR]
 
     def __init__(self, description, filename=None, lineno=None, item_type=NEUTRAL):

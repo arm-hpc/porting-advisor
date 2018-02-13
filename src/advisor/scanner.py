@@ -23,6 +23,9 @@ from .error import Error
 
 
 class Scanner:
+    VCS_SUBDIRECTORIES=['.git', '.hg', '.svn', 'CVS']
+    """List of (hidden) subdirectories used by version control systems."""
+
     def accepts_file(self, filename):
         """Overriden by subclasses to decide whether or not to accept a
         file.
@@ -101,4 +104,6 @@ class Scanner:
         for dirName, _, fileList in os.walk(root):
             for fname in fileList:
                 path = os.path.join(dirName, fname)
+                if any([('/%s/' % x) in path for x in Scanner.VCS_SUBDIRECTORIES]):
+                    continue
                 self.scan_file(path, report)

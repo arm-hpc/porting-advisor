@@ -80,7 +80,7 @@ class SourceScanner(Scanner):
                 continue
             result = naive_cpp.parse_line(line)
             if result.directive_type == PreprocessorDirective.TYPE_ERROR \
-                    and not naive_cpp.in_other_arch_specific_code():
+                    and naive_cpp.in_other_arch_else_code():
                 preprocessor_errors.append(PreprocessorErrorIssue(filename,
                                                                   lineno,
                                                                   line.strip()))

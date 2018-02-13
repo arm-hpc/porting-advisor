@@ -29,8 +29,18 @@ class PreprocessorDirective:
 
     def __init__(self, directive_type, if_line=None, is_compiler=None):
         self.directive_type = directive_type
+        """
+        The type of directive:
+        
+        TYPE_CONDITIONAL - a #if directive.
+        TYPE_ERROR - a #error directive.
+        TYPE_PRAGMA - a #pragma directive
+        TYPE_OTHER - some other directive.
+        """
         self.if_line = if_line
+        """The line that opened the current preprocessor block."""
         self.is_compiler = is_compiler
+        """True if the current preprocessor block is compiler-speciifc, else False."""
 
 
 class NaiveCpp:
@@ -61,10 +71,31 @@ class NaiveCpp:
 
     def __init__(self):
         self.in_aarch64 = []
+        """
+        Stack of preprocessor block states. When a new preprocessor block is begun with #if or #ifdef a new state
+        is pushed onto the stack. The state is True if the condition contains a macro defined on aarch64, False
+        if the condition contains the negation of a macro defined on aarch64, and None (undefined) otherwise. When the
+        preprocessor block is finished with #endif the state is popped.
+        """
         self.in_other_arch = []
+        """
+        Stack of preprocessor block states. When a new preprocessor block is begun with #if or #ifdef a new state
+        is pushed onto the stack. The state is True if the condition contains a macro defined on a non-aarch64
+        architecture, False if the condition contains the negation of a macro defined on a non-aarch64 architecture, and
+        None (undefined) otherwise. When the preprocessor block is finished with #endif the state is popped.
+        """
         self.in_compiler = []
+        """
+        Stack of preprocessor block states. When a new preprocessor block is begun with #if or #ifdef a new state
+        is pushed onto the stack. The state is True if the condition contains a compiler-specific macro, else False.
+        When the preprocessor block is finished with #endif the state is popped.
+        """
         self.if_lines = []
-        self.in_comment = False
+        """
+        A stack of preprocessor block control statements. When a new preprocessor block is begun with #if or #ifdef
+        the statement is pushed onto the stack. When the preprocessor block is finished with #endif the statement
+        is popped.
+        """
 
     def parse_line(self, line):
         """Parse preprocessor directives in a source line.
@@ -121,6 +152,18 @@ class NaiveCpp:
                 NaiveCpp.NON_AARCH64_MACROS_RE_PROG.match(macro) is not None or None)
             is_compiler = NaiveCpp.COMPILER_MACROS_RE_PROG.match(
                 macro) is not None or None
+            self.in_compiler.append(is_compiler)
+            self.if_lines.append(line)
+            return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
+                                         is_compiler=is_compiler)
+        elif directive == 'ifndef':
+            macro = parts[1]
+            self.in_aarch64.append(
+                False if NaiveCpp.AARCH64_MACROS_RE_PROG.match(macro) is not None else None)
+            self.in_other_arch.append(
+                False if NaiveCpp.NON_AARCH64_MACROS_RE_PROG.match(macro) is not None else None)
+            is_compiler = False if NaiveCpp.COMPILER_MACROS_RE_PROG.match(
+                macro) else None
             self.in_compiler.append(is_compiler)
             self.if_lines.append(line)
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
@@ -193,13 +236,15 @@ class NaiveCpp:
 
     @staticmethod
     def _in_x_code(x):
-        for y in x:
-            if y:
-                return True
-        return False
+        return True in x
+
+    @staticmethod
+    def _in_x_else_code(x):
+        return False in x
 
     def in_aarch64_specific_code(self):
-        """Are we in aarch64 specific code?
+        """
+        Are we in aarch64 specific code?
 
         Returns:
             bool: True if we are currently in an #ifdef __aarch64_ or similar block, else False. 
@@ -207,15 +252,26 @@ class NaiveCpp:
         return NaiveCpp._in_x_code(self.in_aarch64)
 
     def in_other_arch_specific_code(self):
-        """Are we in other architecture (non-aarch64) specific code?
+        """
+        Are we in other architecture (non-aarch64) specific code?
 
         Returns:
             bool: True if we are currently in an #ifdef OTHERARCH or similar block, else False. 
         """
         return NaiveCpp._in_x_code(self.in_other_arch)
 
+    def in_other_arch_else_code(self):
+        """
+        Are we in the #else block of other architecture (non-aarch64) specific code?
+
+        Returns:
+            bool: True if we are currently in the #else block of an #ifdef OTHERARCH or similar block, else False.
+        """
+        return NaiveCpp._in_x_else_code(self.in_other_arch)
+
     def in_compiler_specific_code(self):
-        """Are we in compiler specific code?
+        """
+        Are we in compiler specific code?
 
         Returns:
             bool: True if we are currently in an #ifdef COMPILER or similar block, else False. 
