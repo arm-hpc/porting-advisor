@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -70,13 +70,13 @@ class Scanner:
             report.add_source_file(filename)
             self.scan_filename(filename, report)
             if self.has_scan_file_object():
-                with open(filename) as f:
+                with open(filename, errors='ignore') as f:
                     try:
                         self.scan_file_object(filename, f, report)
                     except KeyboardInterrupt:
                         raise
                     except:
-                        report.add_error(Error(description=str(traceback.format_exception(*sys.exc_info())[-1].strip()),
+                        report.add_error(Error(description=str(traceback.format_exc()),
                                                filename=filename))
         except KeyboardInterrupt:
             raise
@@ -94,16 +94,25 @@ class Scanner:
         """
         pass
 
-    def scan_tree(self, root, report):
+    def scan_tree(self, root, report, progress_callback=None):
         """Scans the filesysem tree starting at root for potential porting issues.
 
         Args:
             root (str): The root of the filesystem tree to scan.
             report (Report): Report to add issues to.
+            progress_callback (function): Optional callback called with file names.
         """
         for dirName, _, fileList in os.walk(root):
             for fname in fileList:
                 path = os.path.join(dirName, fname)
-                if any([('/%s/' % x) in path for x in Scanner.VCS_SUBDIRECTORIES]):
-                    continue
-                self.scan_file(path, report)
+                if not Scanner._is_vcs_directory(path) and self.accepts_file(path):
+                    if progress_callback:
+                        progress_callback(path)
+                    self.scan_file(path, report)
+
+    @staticmethod
+    def _is_vcs_directory(path):
+        """Returns:
+            bool: True if the path contains a version control directory (e.g. .git), else False.
+        """
+        return any([('/%s/' % x) in path for x in Scanner.VCS_SUBDIRECTORIES])

@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-__project__ = 'porting-advisor'
-__version__ = '1.2'
-__summary__ = 'Produces an aarch64 porting readiness report.'
-__webpage__ = 'http://www.gitlab.com/arm-hpc/porting-advisor'
+from .localization import _
+from .cross_compile_issue import CrossCompileIssue
+from .report_item import ReportItem
 
 
-def main():
-    from .main import main as real_main
-    real_main()
+class BuildCommandIssue(CrossCompileIssue):
+    def __init__(self, filename, lineno, target):
+        self.target = target
+        description = _("build target is run at build time (not cross-compile friendly): %s") % \
+            target
+        super().__init__(description=description, filename=filename,
+                         lineno=lineno, item_type=ReportItem.NEGATIVE)

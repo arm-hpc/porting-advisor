@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from .report_item import ReportItem
 
 
 class Report:
-    def __init__(self, root_directory, report_errors=True):
+    def __init__(self, root_directory, report_errors=True, target_os='linux'):
         self.issues = []
         self.errors = []
         self.remarks = []
@@ -32,6 +32,7 @@ class Report:
         self.root_directory = root_directory
         self.source_files = []
         self.source_dirs = set()
+        self.target_os = target_os
 
     def add_source_file(self, source_file):
         self.source_files.append(source_file)

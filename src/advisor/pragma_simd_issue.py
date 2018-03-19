@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ from .report_item import ReportItem
 
 
 class PragmaSimdIssue(ReportItem):
-    def __init__(self, filename, lineno, pragma):
+    def __init__(self, filename, lineno, pragma, function=None):
         description = _("simd pragma: %s") % pragma
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEUTRAL)
+                         lineno=lineno, item_type=ReportItem.NEUTRAL,
+                         function=function)

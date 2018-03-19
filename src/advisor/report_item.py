@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,22 +29,41 @@ class ReportItem:
              NEGATIVE, NEUTRAL,
              ERROR]
 
-    def __init__(self, description, filename=None, lineno=None, item_type=NEUTRAL):
+    def __init__(self, description, filename=None, lineno=None, item_type=NEUTRAL, function=None):
         self.filename = filename
         self.lineno = lineno
         self.description = description
         self.item_type = item_type
+        self.function = function
 
     def __str__(self):
         if self.lineno:
-            return _('%(file)s:%(lineno)s: %(description)s') % \
-                {'file': self.filename,
-                 'lineno': self.lineno,
-                 'description': self.description}
+            if self.function:
+                return _('%(file)s:%(lineno)s (%(function)s): %(description)s') % \
+                    {'file': self.filename,
+                     'lineno': self.lineno,
+                     'function': self.function,
+                     'description': self.description}
+            else:
+                return _('%(file)s:%(lineno)s: %(description)s') % \
+                    {'file': self.filename,
+                     'lineno': self.lineno,
+                     'description': self.description}
         elif self.filename:
-            return _('%(file)s: %(description)s') % \
-                {'file': self.filename,
-                 'description': self.description}
+            if self.function:
+                return _('%(file)s (%(function)s): %(description)s') % \
+                    {'file': self.filename,
+                     'function': self.function,
+                     'description': self.description}
+            else:
+                return _('%(file)s: %(description)s') % \
+                    {'file': self.filename,
+                     'description': self.description}
         else:
-            return _('%(description)s') % \
-                {'description': self.description}
+            if self.function:
+                return _('%(function)s: %(description)s') % \
+                    {'function': self.function,
+                     'description': self.description}
+            else:
+                return _('%(description)s') % \
+                    {'description': self.description}

@@ -17,6 +17,7 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 from .find_port import find_port_file
+from .no_equivalent_issue import NoEquivalentIssue
 from .ported_source_files_remark import PortedSourceFilesRemark
 from .scanner import Scanner
 
@@ -36,4 +37,5 @@ class PortFilter(Scanner):
             report.add_remark(PortedSourceFilesRemark(
                 len(ported_source_files)))
         report.issues = [issue for issue in report.issues
-                         if not (issue.filename and issue.filename in ported_source_files)]
+                         if not (issue.filename and issue.filename in ported_source_files) or \
+                             isinstance(issue, NoEquivalentIssue)]

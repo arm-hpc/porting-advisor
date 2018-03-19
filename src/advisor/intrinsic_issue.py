@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ from .report_item import ReportItem
 
 
 class IntrinsicIssue(ReportItem):
-    def __init__(self, filename, lineno, intrinsic):
+    def __init__(self, filename, lineno, intrinsic, function=None):
         description = _("architecture-specific intrinsic: %s") % intrinsic
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         function=function)

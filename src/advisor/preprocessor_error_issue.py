@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ from .report_item import ReportItem
 
 
 class PreprocessorErrorIssue(ReportItem):
-    def __init__(self, filename, lineno, description):
+    def __init__(self, filename, lineno, description, function=None):
         description = _('preprocessor error on aarch64: %s') % description
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         function=function)

@@ -49,6 +49,7 @@ setup(
     },
     install_requires=[
         'jinja2',
+        'progressbar33'
     ],
     zip_safe=False  # gettext.Catalog is not zip-safe.
 )

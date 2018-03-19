@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,24 +23,32 @@ from .arch_strings import *
 class PreprocessorDirective:
     """Information about a preprocessor directive."""
     TYPE_CONDITIONAL = '#if'
-    TYPE_ERROR = '#error'
-    TYPE_PRAGMA = '#pragma'
-    TYPE_OTHER = 'other'
+    TYPE_ERROR       = '#error'
+    TYPE_PRAGMA      = '#pragma'
+    TYPE_DEFINE      = '#define'
+    TYPE_OTHER       = 'other'
+    TYPE_INVALID     = 'invalid'
 
-    def __init__(self, directive_type, if_line=None, is_compiler=None):
+    def __init__(self, directive_type, if_line=None, is_compiler=None, macro_name=None, body=None):
         self.directive_type = directive_type
         """
         The type of directive:
         
         TYPE_CONDITIONAL - a #if directive.
-        TYPE_ERROR - a #error directive.
-        TYPE_PRAGMA - a #pragma directive
-        TYPE_OTHER - some other directive.
+        TYPE_ERROR       - a #error directive.
+        TYPE_PRAGMA      - a #pragma directive.
+        TYPE_DEFINE      - a #define directive. 
+        TYPE_OTHER       - some other directive.
+        TYPE_INVALID     - an invalid directive.
         """
         self.if_line = if_line
         """The line that opened the current preprocessor block."""
         self.is_compiler = is_compiler
         """True if the current preprocessor block is compiler-speciifc, else False."""
+        self.macro_name = macro_name
+        """Macro name used in #ifdef, #define."""
+        self.body = body
+        """#define macro body."""
 
 
 class NaiveCpp:
@@ -68,6 +76,8 @@ class NaiveCpp:
                                          '|'.join(COMPILERS),
                                          re.IGNORECASE)
     """Regular expression to match compiler macros."""
+    IGNORE_MACROS = ['_M_HYBRID_X86_ARM64']
+    """Special-cased macros to ignore because they confuse the parser."""
 
     def __init__(self):
         self.in_aarch64 = []
@@ -96,6 +106,14 @@ class NaiveCpp:
         the statement is pushed onto the stack. When the preprocessor block is finished with #endif the statement
         is popped.
         """
+        self.seen_aarch64 = []
+        """
+        Stack of preprocessor block states. Have we seen an aarch64-specific block at this level?
+        """
+        self.seen_other_arch = []
+        """
+        Stack of preprocessor block states. Have we seen a non-aarch64-specific block at this level
+        """
 
     def parse_line(self, line):
         """Parse preprocessor directives in a source line.
@@ -118,24 +136,48 @@ class NaiveCpp:
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_ERROR)
         elif directive == 'pragma':
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_PRAGMA)
+        elif directive == 'define':
+            if len(parts) == 1:
+                return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_INVALID)
+            rest = parts[1]
+            if rest:
+                define_parts = rest.lstrip().split(maxsplit=1)
+            else:
+                define_parts = []
+            macro_name = define_parts[0]
+            body = define_parts[1] if len(define_parts) > 1 else None
+            return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_DEFINE,
+                                        macro_name=macro_name, body=body)
         elif directive == 'if':
+            if len(parts) == 1:
+                return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_INVALID)
             expression = parts[1]
             self.in_aarch64.append(NaiveCpp._is_expression_aarch64(expression))
+            self.seen_aarch64.append(self.in_aarch64[-1])
             self.in_other_arch.append(
                 NaiveCpp._is_expression_non_aarch64(expression))
+            self.seen_other_arch.append(self.in_other_arch[-1])
             is_compiler = NaiveCpp._is_expression_compiler(expression)
             self.in_compiler.append(is_compiler)
             self.if_lines.append(line)
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
                                          is_compiler=is_compiler)
         elif directive == 'elif':
+            if len(parts) == 1:
+                return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_INVALID)
             expression = parts[1]
             if self.in_aarch64:
                 self.in_aarch64[-1] = \
                     NaiveCpp._is_expression_aarch64(expression)
+            if self.seen_aarch64:
+                self.seen_aarch64[-1] = self.in_aarch64[-1] if self.seen_aarch64[-1] is None else \
+                    self.seen_aarch64[-1] or self.in_aarch64[-1]
             if self.in_other_arch:
                 self.in_other_arch[-1] = \
                     NaiveCpp._is_expression_non_aarch64(expression)
+            if self.seen_other_arch:
+                self.seen_other_arch[-1] = self.in_other_arch[-1] if self.seen_other_arch[-1] is None else \
+                    self.seen_other_arch[-1] or self.in_other_arch[-1]
             if self.in_compiler:
                 is_compiler = NaiveCpp._is_expression_compiler(expression)
                 self.in_compiler[-1] = \
@@ -145,38 +187,45 @@ class NaiveCpp:
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
                                          is_compiler=is_compiler)
         elif directive == 'ifdef':
+            if len(parts) == 1:
+                return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_INVALID)
             macro = parts[1]
             self.in_aarch64.append(
                 NaiveCpp.AARCH64_MACROS_RE_PROG.match(macro) is not None or None)
+            self.seen_aarch64.append(self.in_aarch64[-1])
             self.in_other_arch.append(
                 NaiveCpp.NON_AARCH64_MACROS_RE_PROG.match(macro) is not None or None)
+            self.seen_other_arch.append(self.in_other_arch[-1])
             is_compiler = NaiveCpp.COMPILER_MACROS_RE_PROG.match(
                 macro) is not None or None
             self.in_compiler.append(is_compiler)
             self.if_lines.append(line)
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
-                                         is_compiler=is_compiler)
+                                         is_compiler=is_compiler, macro_name=macro)
         elif directive == 'ifndef':
+            if len(parts) == 1:
+                return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_INVALID)
             macro = parts[1]
             self.in_aarch64.append(
                 False if NaiveCpp.AARCH64_MACROS_RE_PROG.match(macro) is not None else None)
+            self.seen_aarch64.append(self.in_aarch64[-1])
             self.in_other_arch.append(
                 False if NaiveCpp.NON_AARCH64_MACROS_RE_PROG.match(macro) is not None else None)
+            self.seen_other_arch.append(self.in_other_arch[-1])
             is_compiler = False if NaiveCpp.COMPILER_MACROS_RE_PROG.match(
                 macro) else None
             self.in_compiler.append(is_compiler)
             self.if_lines.append(line)
             return PreprocessorDirective(directive_type=PreprocessorDirective.TYPE_CONDITIONAL, if_line=line,
-                                         is_compiler=is_compiler)
+                                         is_compiler=is_compiler, macro_name=macro)
         elif directive == 'else':
             if self.in_aarch64:
                 self.in_aarch64[-1] = \
-                    NaiveCpp.tri_negate(
-                        self.in_aarch64[-1])
+                    not self.seen_aarch64[-1] if self.seen_aarch64[-1] is not None else None
             if self.in_other_arch:
                 self.in_other_arch[-1] = \
-                    NaiveCpp.tri_negate(
-                        self.in_other_arch[-1])
+                    None if self.seen_aarch64[-1] else \
+                        (not self.seen_other_arch[-1] if self.seen_other_arch[-1] is not None else None)
             if self.in_compiler:
                 self.in_compiler[-1] = \
                     NaiveCpp.tri_negate(
@@ -189,8 +238,12 @@ class NaiveCpp:
         elif directive == 'endif':
             if self.in_aarch64:
                 self.in_aarch64.pop()
+            if self.seen_aarch64:
+                self.seen_aarch64.pop()
             if self.in_other_arch:
                 self.in_other_arch.pop()
+            if self.seen_other_arch:
+                self.seen_other_arch.pop()
             if self.in_compiler:
                 self.in_compiler.pop()
             if self.if_lines:
@@ -218,6 +271,8 @@ class NaiveCpp:
             if match:
                 negated = match.group(1) == '!'
                 macro = match.group(2)
+                if macro in NaiveCpp.IGNORE_MACROS:
+                    continue
                 if x.match(macro) is not None:
                     return not negated
         return None

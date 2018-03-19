@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,34 +16,43 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from advisor.other_issues_filter import OtherIssuesFilter
-
 from .asm_source_scanner import AsmSourceScanner
 from .config_guess_scanner import ConfigGuessScanner
+from .issue_type_filter import IssueTypeFilter
 from .makefile_scanner import MakefileScanner
+from .other_issues_filter import OtherIssuesFilter
 from .port_filter import PortFilter
 from .source_scanner import SourceScanner
+from .target_os_filter import TargetOsFilter
 
 
 class Scanners:
     """Set of scanners that may be used to scan for potential porting issues in
     files."""
 
-    def __init__(self):
+    def __init__(self, issue_type_filter):
+        """Initializes the set of scanners that may be used to scan for
+        potential porting issues in files.
+
+        Args:
+            issue_type_filter (str): Configuration string to control the issue
+            type filter.
+        """
         self.scanners = [SourceScanner(),
                          AsmSourceScanner(),
                          ConfigGuessScanner(),
                          MakefileScanner()]
         self.filters = [PortFilter(),
+                        IssueTypeFilter(issue_type_filter),
+                        TargetOsFilter(),
                         OtherIssuesFilter()]
 
-    """Initializes the given report for scanning.
-
-    Args:
-        report (Report): Report to initialize_report.
-    """
-
     def initialize_report(self, report):
+        """Initializes the given report for scanning.
+    
+        Args:
+            report (Report): Report to initialize_report.
+        """
         for a_filter in self.filters:
             a_filter.initialize_report(report)
         for scanner in self.scanners:
@@ -55,10 +64,10 @@ class Scanners:
         Args:
             report (Report): Report to finalize_report.
         """
-        for a_filter in self.filters:
-            a_filter.finalize_report(report)
         for scanner in self.scanners:
             scanner.finalize_report(report)
+        for a_filter in self.filters:
+            a_filter.finalize_report(report)
 
     def __iter__(self):
         return self.scanners.__iter__()

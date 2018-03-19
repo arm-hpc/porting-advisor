@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017-2018 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-__project__ = 'porting-advisor'
-__version__ = '1.2'
-__summary__ = 'Produces an aarch64 porting readiness report.'
-__webpage__ = 'http://www.gitlab.com/arm-hpc/porting-advisor'
+from .report_item import ReportItem
 
+import importlib
+import os
+import pkgutil
+import re
 
-def main():
-    from .main import main as real_main
-    real_main()
+pkg_dir = os.path.dirname(__file__)
+for (module_loader, name, ispkg) in pkgutil.iter_modules([pkg_dir]):
+    if name.endswith('_issue'):
+        importlib.import_module('.' + name, __package__)
+
+ISSUE_TYPES = {re.sub('Issue$', '', cls.__name__): cls for cls in ReportItem.__subclasses__() if cls.__name__.endswith('Issue')}

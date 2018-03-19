@@ -27,8 +27,11 @@ class AutoScanner(Scanner):
         super().__init__()
         self.scanners = scanners
 
-    def accepts_file(self):
-        return True
+    def accepts_file(self, path):
+        for scanner in self.scanners:
+            if scanner.accepts_file(path):
+                return True
+        return False
 
     def scan_file(self, path, report):
         for scanner in self.scanners:

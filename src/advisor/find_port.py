@@ -109,3 +109,10 @@ def find_port_file(filename, other_files, other_files_dirs=None):
     if port_dir:
         return os.path.join(port_dir, tail)
     return None
+
+def is_aarch64_specific_file_name(filename):
+    parts = re.split(r'(\W+)', filename)
+    for part in parts:
+        if part in AARCH64_ARCHS:
+            return True
+    return False
