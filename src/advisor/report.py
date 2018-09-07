@@ -21,6 +21,7 @@ import os
 from .files_scanned_remark import FilesScannedRemark
 from .no_issues_found_remark import NoIssuesFoundRemark
 from .report_item import ReportItem
+import json
 
 
 class Report:
@@ -65,6 +66,15 @@ class Report:
             sorted_items += sorted(items[item_type], key=lambda item: (
                 (item.filename if item.filename else '') + ':' + item.description))
         self.write_items(output_file, sorted_items)
+
+    def write_json(self, output_file, issue_types):
+        self.issue_types = issue_types
+        # munge 'self' fields so it can be serialized
+        self.source_dirs = list(self.source_dirs)
+        self.issues = [str(i) for i in self.issues]
+        self.errors = [str(i) for i in self.errors]
+        self.remarks = [str(i) for i in self.remarks]
+        print(json.dumps(self.__dict__, sort_keys=True, indent=4), file=output_file)
 
     def write_items(self, output_file, items):
         for item in items:
