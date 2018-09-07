@@ -71,6 +71,9 @@ def main():
     parser.add_argument('--quiet', action='store_true',
                         help=_('suppress file errors'),
                         default=False)
+    parser.add_argument('--json', action='store_true',
+                        help=_('output verbose results as json'),
+                        default=False)
     parser.add_argument('--target-os',
                         help=_('target operating system: all,linux,windows (default: %s)') % default_os,
                         default=default_os)
@@ -125,10 +128,16 @@ def main():
 
     if args.output:
         with open(args.output, 'w') as f:
-            report.write(f)
+            if args.json:
+                report.write_json(f, args.issue_types)
+            else:
+                report.write(f)
     else:
-        report.write(sys.stdout)
-        print('\nUse --output FILENAME.html to generate an HTML report.')
+        if args.json:
+            report.write_json(sys.stdout, args.issue_types)
+        else:
+            report.write(sys.stdout)
+            print('\nUse --output FILENAME.html to generate an HTML report.')
 
 
 if __name__ == '__main__':
