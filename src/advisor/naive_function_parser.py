@@ -19,10 +19,12 @@ SPDX-License-Identifier: Apache-2.0
 import re
 
 class NaiveFunctionParser:
-    """Naive function declaration parser."""
+    """Naive function definition parser."""
 
+    TYPE_RE_PROG = re.compile(
+        r'[a-zA-Z_][a-zA-Z0-9_:]*$')
     FUNCTION_RE_PROG = re.compile(
-        r'([a-zA-Z_][a-zA-Z0-9_]*)\s*\(.*\)\s*{')
+        r'(?:[a-zA-Z_][a-zA-Z0-9_:]*)\s+([a-zA-Z_][a-zA-Z0-9_:]*)\s*\(.*\)\s*{')
     """Regular expression that matches function definitions."""
 
     KEYWORDS = set(['catch',
@@ -63,6 +65,7 @@ class NaiveFunctionParser:
         Returns:
             str: Current function name.
         """
+        ret = None
         line = line.strip()
         if line.startswith('(') and self.previous_line:
             # function name is on previous line.
@@ -76,6 +79,9 @@ class NaiveFunctionParser:
         elif self.previous_line and (self.previous_line.endswith('(') or self.previous_line.endswith(',')):
             # multi line arguments
             function_line = self.previous_line + line
+        elif self.previous_line and NaiveFunctionParser.TYPE_RE_PROG.search(self.previous_line):
+            # multi line return type
+            function_line = self.previous_line + ' ' + line
         else:
             function_line = line
         if len(function_line) < 1000: # length check to prevent running regexp on over-long lines
@@ -83,7 +89,7 @@ class NaiveFunctionParser:
         else:
             match = None
         if match and not match.group(1) in NaiveFunctionParser.KEYWORDS:
-            self.current_function = match.group(1)
+            ret = self.current_function = match.group(1)
             self.nesting = 1
             self.previous_line = None
         elif line.lstrip().startswith('{') or line.rstrip().endswith('{'):
@@ -94,3 +100,4 @@ class NaiveFunctionParser:
             self.nesting = 0
             self.current_function = None
         self.previous_line = function_line
+        return ret

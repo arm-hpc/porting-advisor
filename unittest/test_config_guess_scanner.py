@@ -34,9 +34,9 @@ class TestConfigGuessScanner(unittest.TestCase):
         io_object = io.StringIO('xxx')
         config_guess_scanner.scan_file_object(
             'config.guess', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
         report = Report('/root')
         io_object = io.StringIO('aarch64:Linux')
         config_guess_scanner.scan_file_object(
             'config.guess', io_object, report)
-        self.assertEquals(len(report.remarks), 1)
+        self.assertEqual(len(report.remarks), 1)

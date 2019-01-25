@@ -22,6 +22,6 @@ from .report_item import ReportItem
 
 class PortedInlineAsmRemark(ReportItem):
     def __init__(self, ported_asm_source_files):
-        description = _("%d inline assembly statements already ported to aarch64") % \
+        description = _("%d inline assembly statements or intrinsics already have aarch64 equivalents") % \
             ported_asm_source_files
         super().__init__(description=description, item_type=ReportItem.POSITIVE)

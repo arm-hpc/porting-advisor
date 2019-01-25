@@ -71,9 +71,9 @@ class Report:
         self.issue_types = issue_types
         # munge 'self' fields so it can be serialized
         self.source_dirs = list(self.source_dirs)
-        self.issues = [str(i) for i in self.issues]
-        self.errors = [str(i) for i in self.errors]
-        self.remarks = [str(i) for i in self.remarks]
+        self.issues = [i.__class__.__name__ + ': ' + str(i) for i in self.issues]
+        self.errors = [i.__class__.__name__ + ': ' + str(i) for i in self.errors]
+        self.remarks = [i.__class__.__name__ + ': ' + str(i) for i in self.remarks]
         print(json.dumps(self.__dict__, sort_keys=True, indent=4), file=output_file)
 
     def write_items(self, output_file, items):

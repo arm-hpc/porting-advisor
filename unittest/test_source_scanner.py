@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2017-2019 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 from advisor.port_filter import PortFilter
+from advisor.ported_inline_asm_remark import PortedInlineAsmRemark
 from advisor.report import Report
 from advisor.report_item import ReportItem
 from advisor.source_scanner import SourceScanner
@@ -41,32 +42,32 @@ class TestSourceScanner(unittest.TestCase):
         io_object = io.StringIO('xxx')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
         report = Report('/root')
         io_object = io.StringIO('__asm__("")')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
         report = Report('/root')
         io_object = io.StringIO('__asm__("mov r0, r1")')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('_otherarch_intrinsic_xyz(123)')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('#pragma simd foo')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 1)
-        self.assertEquals(report.issues[0].item_type, ReportItem.NEUTRAL)
+        self.assertEqual(len(report.issues), 1)
+        self.assertEqual(report.issues[0].item_type, ReportItem.NEUTRAL)
 
     def test_comments_are_ignored(self):
         source_scanner = SourceScanner()
@@ -75,13 +76,13 @@ class TestSourceScanner(unittest.TestCase):
         io_object = io.StringIO('// __asm__("mov r0, r1")')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
         report = Report('/root')
         io_object = io.StringIO('/*\n__asm__("mov r0, r1")\n*/')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_function_name(self):
         source_scanner = SourceScanner()
@@ -90,8 +91,8 @@ class TestSourceScanner(unittest.TestCase):
         io_object = io.StringIO('void func(void) {\n__asm__("mov r0, r1");\n}')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 1)
-        self.assertEquals(report.issues[0].function, 'func')
+        self.assertEqual(len(report.issues), 1)
+        self.assertEqual(report.issues[0].function, 'func')
 
     def test_macro_name(self):
         source_scanner = SourceScanner()
@@ -100,8 +101,8 @@ class TestSourceScanner(unittest.TestCase):
         io_object = io.StringIO('#define MACRO __asm__("mov r0, r1")')
         source_scanner.scan_file_object(
             'test.c', io_object, report)
-        self.assertEquals(len(report.issues), 1)
-        self.assertEquals(report.issues[0].function, 'MACRO')
+        self.assertEqual(len(report.issues), 1)
+        self.assertEqual(report.issues[0].function, 'MACRO')
 
     def test_equivalent_inline_asm_file(self):
         source_scanner = SourceScanner()
@@ -120,7 +121,13 @@ class TestSourceScanner(unittest.TestCase):
             'aarch64.c', io_object, report)
         source_scanner.finalize_report(report)
         port_filter.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
+        found_ported_remark = False
+        for remark in report.remarks:
+            if isinstance(remark, PortedInlineAsmRemark):
+                found_ported_remark = True
+                break
+        self.assertTrue(found_ported_remark)
 
     def test_no_equivalent_inline_asm_file(self):
         source_scanner = SourceScanner()
@@ -139,7 +146,7 @@ class TestSourceScanner(unittest.TestCase):
             'aarch64.c', io_object, report)
         source_scanner.finalize_report(report)
         port_filter.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_equivalent_intrinsic_file(self):
         source_scanner = SourceScanner()
@@ -158,7 +165,7 @@ class TestSourceScanner(unittest.TestCase):
             'aarch64.c', io_object, report)
         source_scanner.finalize_report(report)
         port_filter.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_no_equivalent_intrinsic_file(self):
         source_scanner = SourceScanner()
@@ -177,7 +184,7 @@ class TestSourceScanner(unittest.TestCase):
             'aarch64.c', io_object, report)
         source_scanner.finalize_report(report)
         port_filter.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_no_equivalent_inline_asm_single_file(self):
         source_scanner = SourceScanner()
@@ -188,7 +195,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_equivalent_inline_asm_function_outline(self):
         source_scanner = SourceScanner()
@@ -199,7 +206,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_equivalent_inline_asm_function_inline(self):
         source_scanner = SourceScanner()
@@ -210,7 +217,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_no_equivalent_inline_asm_function_outline(self):
         source_scanner = SourceScanner()
@@ -221,7 +228,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_no_equivalent_inline_asm_function_inline(self):
         source_scanner = SourceScanner()
@@ -232,7 +239,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_equivalent_intrinsic_function_outline(self):
         source_scanner = SourceScanner()
@@ -243,7 +250,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_equivalent_intrinsic_function_inline(self):
         source_scanner = SourceScanner()
@@ -254,7 +261,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_no_equivalent_intrinsic_function_outline(self):
         source_scanner = SourceScanner()
@@ -265,7 +272,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_no_equivalent_intrinsic_function_inline(self):
         source_scanner = SourceScanner()
@@ -276,4 +283,4 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)

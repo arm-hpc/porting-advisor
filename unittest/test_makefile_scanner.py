@@ -44,7 +44,7 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('xxx')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
 
     def test_arch_specific_libs_re(self):
@@ -52,7 +52,7 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.ARCH_SPECIFIC_LIBS_RE_PROG.search('LIBS=-lotherarch')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), "otherarch")
+        self.assertEqual(match.group(1), "otherarch")
 
     def test_arch_specific_libs(self):
         makefile_scanner = MakefileScanner()
@@ -60,27 +60,27 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('-lotherarch')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_old_crt_re(self):
         match = MakefileScanner.OLD_CRT_RE_PROG.search('LIBS=libfoo.lib')
         self.assertIsNone(match)
         match = MakefileScanner.OLD_CRT_RE_PROG.search('LIBS=libcmt.lib')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), "libcmt.lib")
+        self.assertEqual(match.group(1), "libcmt.lib")
         match = MakefileScanner.OLD_CRT_RE_PROG.search('LIBS=libcmtd.lib')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), "libcmtd.lib") 
+        self.assertEqual(match.group(1), "libcmtd.lib") 
 
     def test_ucrt_re(self):
         match = MakefileScanner.UCRT_RE_PROG.search('LIBS=libfoo.lib')
         self.assertIsNone(match)
         match = MakefileScanner.UCRT_RE_PROG.search('LIBS=libucrt.lib')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), "libucrt.lib")
+        self.assertEqual(match.group(1), "libucrt.lib")
         match = MakefileScanner.UCRT_RE_PROG.search('LIBS=libucrtd.lib')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), "libucrtd.lib") 
+        self.assertEqual(match.group(1), "libucrtd.lib") 
 
     def test_old_crt(self):
         makefile_scanner = MakefileScanner()
@@ -89,13 +89,13 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('LIBS=libcmt.lib')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('!IF $(OLD_CRT)\nLIBS=libcmt.lib\n!ELSE\nLIBS=libucrt.lib\n!ENDIF')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_other_arch_cpu_line_re(self):
         match = MakefileScanner.OTHER_ARCH_CPU_LINE_RE_PROG.search('!IF "$(CPU)" == "aarch64"')
@@ -116,13 +116,13 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('!IF "$(CPU)" == "otherarch"')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('!IF "$(VSCMD_ARG_TGT_ARCH)" == "arm"\nTARGET_ARCH=aarch64\n!ELIF "$(CPU)" == "otherarch"\nTARGET_ARCH=otherarch\n!ENDIF')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_target_re(self):
         match = MakefileScanner.TARGET_RE_PROG.search('\tsomecommand')
@@ -131,10 +131,10 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.TARGET_RE_PROG.search('target:')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'target')
+        self.assertEqual(match.group(1), 'target')
         match = MakefileScanner.TARGET_RE_PROG.search('$(TARGET):')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '$(TARGET)')
+        self.assertEqual(match.group(1), '$(TARGET)')
 
     def test_command_re(self):
         match = MakefileScanner.COMMAND_RE_PROG.search('#a comment')
@@ -145,31 +145,31 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.COMMAND_RE_PROG.search('\tsomecommand')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'somecommand')
+        self.assertEqual(match.group(1), 'somecommand')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t"somecommand"')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(2), 'somecommand')
+        self.assertEqual(match.group(2), 'somecommand')
         match = MakefileScanner.COMMAND_RE_PROG.search('\tsomecommand arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'somecommand')
+        self.assertEqual(match.group(1), 'somecommand')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t"somecommand" arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(2), 'somecommand')
+        self.assertEqual(match.group(2), 'somecommand')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t"word1 word2" arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(2), 'word1 word2')
+        self.assertEqual(match.group(2), 'word1 word2')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t$(TARGET)')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '$(TARGET)')
+        self.assertEqual(match.group(1), '$(TARGET)')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t$(TARGET) arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '$(TARGET)')
+        self.assertEqual(match.group(1), '$(TARGET)')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t"$(TARGET)" arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(2), '$(TARGET)')
+        self.assertEqual(match.group(2), '$(TARGET)')
         match = MakefileScanner.COMMAND_RE_PROG.search('\t./target.exe arg')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), './target.exe')
+        self.assertEqual(match.group(1), './target.exe')
 
     def test_target_command(self):
         makefile_scanner = MakefileScanner()
@@ -178,21 +178,21 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('target.exe: target.c\n\tcl target.c /Fe:target.exe\n\nfoobar.h: target.exe\n\t./target.exe >foobar.h')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('$(TARGET): target.c\n\tcl target.c /Fe:target.exe\n\nfoobar.h: $(TARGET)\n\t$(TARGET) >foobar.h')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
     def test_assignment_re(self):
         match = MakefileScanner.ASSIGNMENT_RE_PROG.search('# foo')
         self.assertIsNone(match)
         match = MakefileScanner.ASSIGNMENT_RE_PROG.search('A=B')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'A')
-        self.assertEquals(match.group(2), 'B')
+        self.assertEqual(match.group(1), 'A')
+        self.assertEqual(match.group(2), 'B')
 
     def test_target_command_with_assignment(self):
         makefile_scanner = MakefileScanner()
@@ -201,22 +201,22 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('TARGET=target.exe\n\n$(TARGET): target.c\n\tcl target.c /Fe:target.exe\n\nfoobar.h: $(TARGET)\n\t$(TARGET) >foobar.h')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
         issue = report.issues[0]
-        self.assertEquals(issue.target, 'target.exe')
+        self.assertEqual(issue.target, 'target.exe')
 
     def test_d_other_arch_re(self):
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/Dfoo')
         self.assertIsNone(match)
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/Dotherarch')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'otherarch')
+        self.assertEqual(match.group(1), 'otherarch')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/D_otherarch_')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '_otherarch_')
+        self.assertEqual(match.group(1), '_otherarch_')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/D__otherarch__')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '__otherarch__')
+        self.assertEqual(match.group(1), '__otherarch__')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/Daarch64')
         self.assertIsNone(match)
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('/D_aarch64_')
@@ -227,13 +227,13 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('-Dotherarch')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'otherarch')
+        self.assertEqual(match.group(1), 'otherarch')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('-D_otherarch_')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '_otherarch_')
+        self.assertEqual(match.group(1), '_otherarch_')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('-D__otherarch__')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '__otherarch__')
+        self.assertEqual(match.group(1), '__otherarch__')
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('-Daarch64')
         self.assertIsNone(match)
         match = MakefileScanner.D_OTHER_ARCH_RE_PROG.search('-D_aarch64_')
@@ -246,13 +246,13 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.D_AARCH64_RE_PROG.search('/Daarch64')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'aarch64')
+        self.assertEqual(match.group(1), 'aarch64')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('/D_aarch64_')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '_aarch64_')
+        self.assertEqual(match.group(1), '_aarch64_')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('/D__aarch64__')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '__aarch64__')
+        self.assertEqual(match.group(1), '__aarch64__')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('/Dotherarch')
         self.assertIsNone(match)
         match = MakefileScanner.D_AARCH64_RE_PROG.search('/D_otherarch_')
@@ -263,13 +263,13 @@ class TestMakefileScanner(unittest.TestCase):
         self.assertIsNone(match)
         match = MakefileScanner.D_AARCH64_RE_PROG.search('-Daarch64')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), 'aarch64')
+        self.assertEqual(match.group(1), 'aarch64')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('-D_aarch64_')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '_aarch64_')
+        self.assertEqual(match.group(1), '_aarch64_')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('-D__aarch64__')
         self.assertIsNotNone(match)
-        self.assertEquals(match.group(1), '__aarch64__')
+        self.assertEqual(match.group(1), '__aarch64__')
         match = MakefileScanner.D_AARCH64_RE_PROG.search('-Dotherarch')
         self.assertIsNone(match)
         match = MakefileScanner.D_AARCH64_RE_PROG.search('-D_otherarch_')
@@ -284,13 +284,13 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('CFLAGS=/D__otherarch__')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)
 
         report = Report('/root')
         io_object = io.StringIO('!IF "$(VSCMD_ARG_TGT_ARCH)" == "arm"\nCFLAGS=/D__arm__\n!ELIF "$(CPU)" == "otherarch"\nCFLAGS=/D__otherarch__\n!ENDIF')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 0)
+        self.assertEqual(len(report.issues), 0)
 
     def test_continuation(self):
         makefile_scanner = MakefileScanner()
@@ -299,4 +299,4 @@ class TestMakefileScanner(unittest.TestCase):
         io_object = io.StringIO('LIBS=-lotherarch\\\n-lotherarch')
         makefile_scanner.scan_file_object(
             'Makefile', io_object, report)
-        self.assertEquals(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 1)

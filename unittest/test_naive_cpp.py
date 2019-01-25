@@ -239,19 +239,19 @@ class TestNaiveCpp(unittest.TestCase):
     def test_parse_line_pragma(self):
         naive_cpp = NaiveCpp()
         result = naive_cpp.parse_line('#pragma simd foo')
-        self.assertEquals(result.directive_type,
+        self.assertEqual(result.directive_type,
                           PreprocessorDirective.TYPE_PRAGMA)
 
     def test_parse_line_error(self):
         naive_cpp = NaiveCpp()
         result = naive_cpp.parse_line('#error foo')
-        self.assertEquals(result.directive_type,
+        self.assertEqual(result.directive_type,
                           PreprocessorDirective.TYPE_ERROR)
 
     def test_parse_line_ifdef_compiler(self):
         naive_cpp = NaiveCpp()
         result = naive_cpp.parse_line('#ifdef __GNUC__')
-        self.assertEquals(result.directive_type,
+        self.assertEqual(result.directive_type,
                           PreprocessorDirective.TYPE_CONDITIONAL)
         self.assertTrue(result.is_compiler)
 
@@ -282,15 +282,15 @@ class TestNaiveCpp(unittest.TestCase):
     def test_macro_body(self):
         naive_cpp = NaiveCpp()
         result = naive_cpp.parse_line('#define MACRO BODY')
-        self.assertEquals(result.directive_type,
+        self.assertEqual(result.directive_type,
                           PreprocessorDirective.TYPE_DEFINE)
-        self.assertEquals(result.macro_name, 'MACRO')
-        self.assertEquals(result.body, 'BODY')
+        self.assertEqual(result.macro_name, 'MACRO')
+        self.assertEqual(result.body, 'BODY')
         result = naive_cpp.parse_line('#define MACRO(a,b,c) BODY')
-        self.assertEquals(result.directive_type,
+        self.assertEqual(result.directive_type,
                           PreprocessorDirective.TYPE_DEFINE)
-        self.assertEquals(result.macro_name, 'MACRO(a,b,c)')
-        self.assertEquals(result.body, 'BODY')
+        self.assertEqual(result.macro_name, 'MACRO(a,b,c)')
+        self.assertEqual(result.body, 'BODY')
 
     def test_parse_line_if_else(self):
         naive_cpp = NaiveCpp()

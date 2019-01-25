@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2017-2019 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -137,7 +137,6 @@ class SourceScanner(Scanner):
                         not '".symver ' in line:
                     if naive_cpp.in_aarch64_specific_code():
                         found_aarch64_inline_asm = True
-                        report.ported_inline_asm += 1
                     else:
                         inline_asm_issues.append(
                             InlineAsmIssue(filename, lineno, function=function))
@@ -184,6 +183,8 @@ class SourceScanner(Scanner):
             if function in self.aarch64_functions:
                 if not function in self.aarch64_intrinsic_inline_asm_functions:
                     report.add_issue(self.other_arch_intrinsic_inline_asm_functions[function])
+                else:
+                    report.ported_inline_asm += 1
                 issue = self.other_arch_intrinsic_inline_asm_functions[function]
                 fname = issue.filename
                 if fname in self.other_arch_intrinsic_inline_asm_files:
@@ -193,5 +194,7 @@ class SourceScanner(Scanner):
                 fname, report.source_files, report.source_dirs)
             if port_file and port_file not in self.aarch64_intrinsic_inline_asm_files:
                 report.add_issue(self.other_arch_intrinsic_inline_asm_files[fname])
+            else:
+                report.ported_inline_asm += 1
         if report.ported_inline_asm:
             report.add_remark(PortedInlineAsmRemark(report.ported_inline_asm))
