@@ -22,6 +22,7 @@ from .files_scanned_remark import FilesScannedRemark
 from .no_issues_found_remark import NoIssuesFoundRemark
 from .report_item import ReportItem
 import json
+import csv
 
 
 class Report:
@@ -34,6 +35,10 @@ class Report:
         self.source_files = []
         self.source_dirs = set()
         self.target_os = target_os
+        self.filename_data = ['FILENAME',]
+        self.avx256_data = ['NUM_OF_AVX256_INST',]
+        self.avx512_data = ['NUM_OF_AVX512_INST',]
+        self.total_data = ['TOTAL_AVX_INST',]
 
     def add_source_file(self, source_file):
         self.source_files.append(source_file)
@@ -75,6 +80,18 @@ class Report:
         self.errors = [i.__class__.__name__ + ': ' + str(i) for i in self.errors]
         self.remarks = [i.__class__.__name__ + ': ' + str(i) for i in self.remarks]
         print(json.dumps(self.__dict__, sort_keys=True, indent=4), file=output_file)
+
+    """This will generate CSV file for avx insturction"""
+    def write_csv(self, csvfilename):
+        with open(csvfilename, "w") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=self.filename_data)
+            writer.writeheader()
+            writer = csv.DictWriter(csvfile, fieldnames=self.avx256_data)
+            writer.writeheader()
+            writer = csv.DictWriter(csvfile, fieldnames=self.avx512_data)
+            writer.writeheader()
+            writer = csv.DictWriter(csvfile, fieldnames=self.total_data)
+            writer.writeheader()
 
     def write_items(self, output_file, items):
         for item in items:

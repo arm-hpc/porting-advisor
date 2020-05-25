@@ -26,3 +26,19 @@ class IntrinsicIssue(ReportItem):
         super().__init__(description=description, filename=filename,
                          lineno=lineno, item_type=ReportItem.NEGATIVE,
                          function=function)
+
+"""Class for AVX256 intrinsic issues"""
+class AVX256IntrinsicIssue(ReportItem):
+    def __init__(self, filename, lineno, intrinsic, function=None):
+        description = _("architecture-specific AVX256 intrinsic: %s") % intrinsic
+        super().__init__(description=description, filename=filename,
+                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         function=function)
+
+"""Class for AVX512 intrinsic issues"""
+class AVX512IntrinsicIssue(ReportItem):
+    def __init__(self, filename, lineno, intrinsic, function=None):
+        description = _("architecture-specific AVX512 intrinsic: %s") % intrinsic
+        super().__init__(description=description, filename=filename,
+                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         function=function)

@@ -74,6 +74,9 @@ def main():
     parser.add_argument('--json', action='store_true',
                         help=_('output verbose results as json'),
                         default=False)
+    parser.add_argument('--avx',
+                        help=_('output file name in csv format for avx instruction'),
+                        default=None)
     parser.add_argument('--target-os',
                         help=_('target operating system: all,linux,windows (default: %s)') % default_os,
                         default=default_os)
@@ -132,13 +135,14 @@ def main():
                 report.write_json(f, args.issue_types)
             else:
                 report.write(f)
-    else:
-        if args.json:
+    elif args.json:
             report.write_json(sys.stdout, args.issue_types)
+    else:
+        if args.avx:
+            report.write_csv(args.avx)
         else:
             report.write(sys.stdout)
-            print('\nUse --output FILENAME.html to generate an HTML report.')
-
+            print('\nUse --output FILENAME.html to generate an HTML report or --avx FILENAME.csv to generate csv file.')
 
 if __name__ == '__main__':
     main()
