@@ -23,8 +23,8 @@ from .compiler_specific_issue import CompilerSpecificIssue
 from .continuation_parser import ContinuationParser
 from .find_port import find_port_file, is_aarch64_specific_file_name
 from .inline_asm_issue import InlineAsmIssue
-from .intrinsic_issue import IntrinsicIssue
-from .intrinsics import ARM_INTRINSICS, OTHER_ARCH_INTRINSICS
+from .intrinsic_issue import IntrinsicIssue, AVX256IntrinsicIssue, AVX512IntrinsicIssue
+from .intrinsics import ARM_INTRINSICS, OTHER_ARCH_INTRINSICS, AVX256_INTRINSICS, AVX512_INTRINSICS
 from .naive_comment_parser import NaiveCommentParser
 from .naive_cpp import NaiveCpp, PreprocessorDirective
 from .naive_function_parser import NaiveFunctionParser
@@ -34,7 +34,7 @@ from .ported_inline_asm_remark import PortedInlineAsmRemark
 from .pragma_simd_issue import PragmaSimdIssue
 from .preprocessor_error_issue import PreprocessorErrorIssue
 from .scanner import Scanner
-
+from .avx_global import *
 
 class SourceScanner(Scanner):
     """Scanner that scans C, C++ and Fortran source files for potential porting
@@ -48,6 +48,11 @@ class SourceScanner(Scanner):
                                     '|'.join([(r'\b%s\b' % x) for x in ARM_INTRINSICS]))
     OTHER_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
                                     '|'.join([(r'\b%s\b' % x) for x in OTHER_ARCH_INTRINSICS]))
+    AVX256_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
+                                    '|'.join([(r'\b%s\b' % x) for x in AVX256_INTRINSICS]))
+    AVX512_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
+                                    '|'.join([(r'\b%s\b' % x) for x in AVX512_INTRINSICS]))
+
     """Regular expression that matches architecture-specific intrinsics."""
     INLINE_ASM_RE_PROG = re.compile(
         r'(^|\s)(__asm__|asm)(\s+volatile)?(\s+goto)?\(')
@@ -76,6 +81,16 @@ class SourceScanner(Scanner):
     def initialize_report(self, report):
         report.ported_inline_asm = 0
 
+    def has_write_csv_file(self):
+        return hasattr(self, 'has_write_csv_file')
+
+    def write_csv_file(self, filename, avx256_count_no, avx512_count_no, total_avx_no):
+        if total_avx_no > 0 :
+            avx256_data.append(avx256_count_no)
+            avx512_data.append(avx512_count_no)
+            total_data.append(total_avx_no)
+            filename_data.append(filename)
+
     def scan_file_object(self, filename, file_object, report):
         continuation_parser = ContinuationParser()
         naive_cpp = NaiveCpp()
@@ -85,6 +100,10 @@ class SourceScanner(Scanner):
         found_aarch64_inline_asm = False
         inline_asm_issues = []
         preprocessor_errors = []
+
+        avx256_count = 0
+        avx512_count = 0
+        total_avx_count = 0
 
         for lineno, line in enumerate(file_object, 1):
             line = continuation_parser.parse_line(line)
@@ -154,18 +173,30 @@ class SourceScanner(Scanner):
 
                 arm_match = SourceScanner.ARM_INTRINSICS_RE_PROG.search(line)
                 other_match = SourceScanner.OTHER_ARCH_INTRINSICS_RE_PROG.search(line)
+                avx256_match = SourceScanner.AVX256_ARCH_INTRINSICS_RE_PROG.search(line)
+                avx512_match = SourceScanner.AVX512_ARCH_INTRINSICS_RE_PROG.search(line)
                 if other_match and not arm_match:
                     intrinsic = other_match.group(1)
                     if not naive_cpp.in_other_arch_specific_code():
                         report.add_issue(IntrinsicIssue(
                             filename, lineno, intrinsic, function=function))
+                        if avx256_match:
+                            avx256_count += 1
+                            report.add_issue(AVX256IntrinsicIssue(
+                            filename, lineno, intrinsic, function=function))
+                        elif avx512_match:
+                            avx512_count += 1
+                            report.add_issue(AVX512IntrinsicIssue(
+                                filename, lineno, intrinsic, function=function))
+                        else:
+                            report.add_issue(IntrinsicIssue(
+                                filename, lineno, intrinsic, function=function))
                     if not filename in self.other_arch_intrinsic_inline_asm_files:
                         self.other_arch_intrinsic_inline_asm_files[filename] = \
                             NoEquivalentIntrinsicIssue(filename, lineno, intrinsic)
                     if function and not function in self.other_arch_intrinsic_inline_asm_functions:
                         self.other_arch_intrinsic_inline_asm_functions[function] = \
                             NoEquivalentIntrinsicIssue(filename, lineno, intrinsic, function=function)
-
                 if arm_match:
                     self.aarch64_intrinsic_inline_asm_files.add(filename)
                     if function:
@@ -177,6 +208,9 @@ class SourceScanner(Scanner):
                     report.add_issue(issue)
         for issue in preprocessor_errors:
             report.add_issue(issue)
+
+        total_avx_count = avx256_count + avx512_count
+        self.write_csv_file(filename, avx256_count, avx512_count, total_avx_count)
 
     def finalize_report(self, report):
         for function in self.other_arch_intrinsic_inline_asm_functions:
