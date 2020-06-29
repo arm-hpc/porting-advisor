@@ -93,11 +93,13 @@ def main():
     elif not os.path.isdir(args.root):
         print(_('%s: not a directory.') % args.root, file=sys.stderr)
         sys.exit(1)
+    print_footer = False
     try:
         args.output_format = ReportOutputFormat(args.output_format)
         if args.output_format == ReportOutputFormat.AUTO:
             if not args.output:
                 args.output_format = ReportOutputFormat.TEXT
+                print_footer = True
             else:
                 # Take the output format from the output file extension.
                 ext = os.path.splitext(args.output)[1][1:]
@@ -148,7 +150,8 @@ def main():
             report.write(f, report_errors=not args.quiet)
     else:
         report.write(sys.stdout, report_errors=not args.quiet)
-        print('\nUse --output FILENAME.html to generate an HTML report.')
+        if print_footer:
+            print('\nUse --output FILENAME.html to generate an HTML report.')
 
 
 if __name__ == '__main__':
