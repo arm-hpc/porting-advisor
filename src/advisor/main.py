@@ -1,9 +1,5 @@
 """
-<<<<<<< HEAD
-Copyright 2017-2020 Arm Ltd.
-=======
 Copyright 2017-2018,2020 Arm Ltd.
->>>>>>> a34f74b... Refactor issue type filtering.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -97,6 +93,7 @@ def main():
     elif not os.path.isdir(args.root):
         print(_('%s: not a directory.') % args.root, file=sys.stderr)
         sys.exit(1)
+    report_factory = ReportFactory()
     print_footer = False
     try:
         args.output_format = ReportOutputFormat(args.output_format)
@@ -106,15 +103,13 @@ def main():
                 print_footer = True
             else:
                 # Take the output format from the output file extension.
-                ext = os.path.splitext(args.output)[1][1:]
-                args.output_format = ext.lower() # for the error reporting
-                args.output_format = ReportOutputFormat(args.output_format)
+                args.output_format = os.path.splitext(args.output)[1][1:]
+                args.output_format = report_factory.output_format_for_extension(args.output_format)
     except ValueError:
         print(_('%s: invalid output format') % args.output_format, file=sys.stderr)
         sys.exit(1)
     args.issue_types = IssueTypeConfig(args.issue_types)
 
-    report_factory = ReportFactory()
     report = report_factory.createReport(args.root, target_os=args.target_os, issue_type_config=args.issue_types, output_format=args.output_format)
 
     scanners = Scanners(args.issue_types, filter_ported_code=not args.no_filter)

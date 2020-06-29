@@ -20,7 +20,7 @@ from .csv_report import CsvReport
 from .csv_issue_type_count_by_file_report import CsvIssueTypeCountByFileReport
 from .html_report import HtmlReport
 from .json_report import JsonReport
-from .text_report import Report
+from .text_report import TextReport
 from enum import Enum
 
 class ReportOutputFormat(Enum):
@@ -35,9 +35,24 @@ class ReportOutputFormat(Enum):
 class ReportFactory:
     """ Factory class for report output formats. """
 
+    _OUTPUT_FORMAT_FOR_EXTENSION = {
+        'json': ReportOutputFormat.JSON,
+        'html': ReportOutputFormat.HTML,
+        'htm' : ReportOutputFormat.HTML,
+        'txt' : ReportOutputFormat.TEXT
+    }
+    """ Dictionary mapping file extension to output format.
+
+        Used to decide the output format from the output file name when the
+        report output format is 'auto'. """
+
+    def output_format_for_extension(self, extension):
+        """ Choose an output format based on the given file name extension. """
+        return ReportFactory._OUTPUT_FORMAT_FOR_EXTENSION.get(extension.lower(), None)
+
     def createReport(self, root_directory, target_os='linux', issue_type_config=None, output_format=ReportOutputFormat.TEXT):
         if output_format == ReportOutputFormat.TEXT:
-            report = Report(root_directory, target_os=target_os)
+            report = TextReport(root_directory, target_os=target_os)
         elif output_format == ReportOutputFormat.HTML:
             report = HtmlReport(root_directory, target_os=target_os)
         elif output_format == ReportOutputFormat.CSV:

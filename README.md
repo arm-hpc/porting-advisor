@@ -30,9 +30,9 @@ Usage
 -----
 
 ```
-usage: porting-advisor [-h] [--csv] [--csv-schema-type CSV_SCHEMA_TYPE]
-                       [--issue-types ISSUE_TYPES] [--no-progress]
-                       [--output OUTPUT] [--quiet] [--json]
+usage: porting-advisor [-h] [--issue-types ISSUE_TYPES] [--no-filter]
+                       [--no-progress] [--output OUTPUT]
+                       [--output-format OUTPUT_FORMAT] [--quiet]
                        [--target-os TARGET_OS] [--version]
                        DIRECTORY
 
@@ -43,18 +43,18 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --csv                 output verbose results as CSV
-  --csv-schema-type CSV_SCHEMA_TYPE
-                        CSV schema type:
-                        CsvSchemaType.ISSUES,CsvSchemaType.TOTALS (default:
-                        CsvSchemaType.ISSUES)
   --issue-types ISSUE_TYPES
                         modify the types of issue that are reported (default:
                         -CompilerSpecific,-CrossCompile,-NoEquivalent)
+  --no-filter           don't filter architecture-specific code that appears
+                        to have an aarch64 equivalent
   --no-progress         don't show progress bar
   --output OUTPUT       output file name
+  --output-format OUTPUT_FORMAT
+                        output format:
+                        auto,csv_issue_type_count_by_file,csv,json,html,text
+                        (default: auto)
   --quiet               suppress file errors
-  --json                output verbose results as json
   --target-os TARGET_OS
                         target operating system: all,linux,windows (default:
                         linux)
@@ -70,10 +70,12 @@ Use:
     architectures.
 
 Available issue types:
-  ArchSpecificLibrary, AsmSource, BuildCommand, CompilerSpecific,
-  ConfigGuess, CrossCompile, DefineOtherArch, HostCpuDetection,
-  InlineAsm, Intrinsic, NoEquivalent, NoEquivalentInlineAsm,
-  NoEquivalentIntrinsic, OldCrt, PragmaSimd, PreprocessorError
+  ArchSpecificLibrary, AsmSource, Avx256Intrinsic, Avx512Intrinsic,
+  BuildCommand, CompilerSpecific, ConfigGuess, CrossCompile,
+  DefineOtherArch, HostCpuDetection, InlineAsm, Intrinsic,
+  NoEquivalent, NoEquivalentInlineAsm, NoEquivalentIntrinsic, OldCrt,
+  PragmaSimd, PreprocessorError
+
 ```
 
 Caveats
