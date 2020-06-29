@@ -23,6 +23,7 @@ from advisor.inline_asm_issue import InlineAsmIssue
 from advisor.issue_type_config import IssueTypeConfig
 from advisor.issue_types import ISSUE_TYPES
 from advisor.no_equivalent_issue import NoEquivalentIssue
+from advisor.pragma_simd_issue import PragmaSimdIssue
 from advisor.preprocessor_error_issue import PreprocessorErrorIssue
 import unittest
 
@@ -40,8 +41,8 @@ class TestIssueTypeConfig(unittest.TestCase):
         actual_issue_types = issue_type_config.filter_issue_types(ISSUE_TYPES)
         self.assertEquals(set(expected_issue_types), set(actual_issue_types))
         expected_included_issue = PreprocessorErrorIssue('foo', 'bar', 'wibble')
-        expected_excluded_issue = CompilerSpecificIssue('foo', 'bar', 'wibble')
         self.assertTrue(issue_type_config.include_issue_p(expected_included_issue))
+        expected_excluded_issue = CompilerSpecificIssue('foo', 'bar', 'wibble')
         self.assertFalse(issue_type_config.include_issue_p(expected_excluded_issue))
 
     def test_explicit_list(self):
@@ -50,6 +51,40 @@ class TestIssueTypeConfig(unittest.TestCase):
         actual_issue_types = issue_type_config.filter_issue_types(ISSUE_TYPES)
         self.assertEquals(expected_issue_types, actual_issue_types)
         expected_included_issue = PreprocessorErrorIssue('foo', 'bar', 'wibble')
-        expected_excluded_issue = CompilerSpecificIssue('foo', 'bar', 'wibble')
         self.assertTrue(issue_type_config.include_issue_p(expected_included_issue))
+        expected_excluded_issue = CompilerSpecificIssue('foo', 'bar', 'wibble')
+        self.assertFalse(issue_type_config.include_issue_p(expected_excluded_issue))
+        expected_excluded_issue = PragmaSimdIssue('foo', 'bar', 'wibble') # not in explicit list
+        self.assertFalse(issue_type_config.include_issue_p(expected_excluded_issue))
+
+    def test_include(self):
+        def is_expected_filtered(issue_type):
+            # Assumes DEFAULT_FILTER = '-CompilerSpecific,-CrossCompile,-NoEquivalent'
+            return issubclass(issue_type, CrossCompileIssue) or \
+                   issubclass(issue_type, NoEquivalentIssue)
+
+        expected_issue_types = [issue_type for issue_type in ISSUE_TYPES.values() if not is_expected_filtered(issue_type)]
+        issue_type_config = IssueTypeConfig('+CompilerSpecific')
+        actual_issue_types = issue_type_config.filter_issue_types(ISSUE_TYPES)
+        self.assertEquals(set(expected_issue_types), set(actual_issue_types))
+        expected_included_issue = PreprocessorErrorIssue('foo', 'bar', 'wibble')
+        self.assertTrue(issue_type_config.include_issue_p(expected_included_issue))
+        expected_excluded_issue = NoEquivalentIssue('foo', 'bar', 'wibble')
+        self.assertFalse(issue_type_config.include_issue_p(expected_excluded_issue))
+
+    def test_exclude(self):
+        def is_expected_filtered(issue_type):
+            # Assumes DEFAULT_FILTER = '-CompilerSpecific,-CrossCompile,-NoEquivalent'
+            return issubclass(issue_type, CompilerSpecificIssue) or \
+                   issubclass(issue_type, CrossCompileIssue) or \
+                   issubclass(issue_type, NoEquivalentIssue) or \
+                   issubclass(issue_type, PreprocessorErrorIssue)
+
+        expected_issue_types = [issue_type for issue_type in ISSUE_TYPES.values() if not is_expected_filtered(issue_type)]
+        issue_type_config = IssueTypeConfig('-PreprocessorError')
+        actual_issue_types = issue_type_config.filter_issue_types(ISSUE_TYPES)
+        self.assertEquals(set(expected_issue_types), set(actual_issue_types))
+        expected_included_issue = PragmaSimdIssue('foo', 'bar', 'wibble')
+        self.assertTrue(issue_type_config.include_issue_p(expected_included_issue))
+        expected_excluded_issue = PreprocessorErrorIssue('foo', 'bar', 'wibble')
         self.assertFalse(issue_type_config.include_issue_p(expected_excluded_issue))

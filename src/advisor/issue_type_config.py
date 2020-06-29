@@ -16,6 +16,7 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from operator import itemgetter
 import sys
 
 
@@ -27,7 +28,7 @@ class IssueTypeConfig:
 
     DEFAULT_FILTER = '-CompilerSpecific,-CrossCompile,-NoEquivalent'
     """Default issue filter. This is always prepended to the filter supplied
-    on the command line."""
+    on the command line if it starts with a - or +."""
 
     def __init__(self, config_string=None):
         """Parse the --issue-types command line argument to get the issue type
@@ -42,14 +43,13 @@ class IssueTypeConfig:
         """
         if config_string and not config_string.startswith('+') and not config_string.startswith('-'):
             # User wants to replace the default list.
-            self.default_include = False
-            print('yes')
+            self._include_by_default = False
         elif config_string:
             config_string = IssueTypeConfig.DEFAULT_FILTER + ',' + config_string
-            self.default_include = True
+            self._include_by_default = True
         else:
             config_string = IssueTypeConfig.DEFAULT_FILTER
-            self.default_include = True
+            self._include_by_default = True
 
         issue_types = config_string.split(',')
         self.klasses = []
@@ -77,10 +77,25 @@ class IssueTypeConfig:
 
         This function is careful to preserve the order of issue types given on
         the command line if the user passed an explicit list.
+
+        For example, if the user passed:
+            --issue-types=PreprocessorIssue,ConfigGuessIssue
+        on the command line, this function will return:
+            [PreprocessorIssue, ConfigGuessIssue].
+
+        This is to allow the user direct control over the order of the column
+        headings for the CSV output format.
+
+        If no explicit list was passed (i.e. the user specified only non-default
+        inclusions or exclusions prefixed by + or -) the function returns a list
+        of issue type classes sorted in order of their display name.
         """
 
-        sorted_issue_types = [cls for _, cls in sorted(issue_types.items(), key=lambda name_cls: name_cls[0])]
-        if not self.default_include:
+        # A list of issue type classes, sorted by the display name. This is used
+        # to keep the results in display name order where the order is otherwise
+        # not specified.
+        sorted_issue_types = [cls for _, cls in sorted(issue_types.items(), key=itemgetter(0))]
+        if not self._include_by_default:
             # Preserve the order of issue types given on the command line.
             source_list = []
             for (cls, _) in self.klasses:
@@ -91,7 +106,7 @@ class IssueTypeConfig:
             source_list = sorted_issue_types
         ret = []
         for klass_a in source_list:
-            want_this_class = self.default_include
+            want_this_class = self._include_by_default
             for (klass_b, want_this_issue_type) in self.klasses:
                 if klass_a == klass_b or issubclass(klass_a, klass_b):
                     want_this_class = want_this_issue_type
@@ -102,7 +117,7 @@ class IssueTypeConfig:
     def include_issue_p(self, issue):
         """Return whether this issue is wanted or not according to the issue type
         filter configuration."""
-        want_this_issue = self.default_include
+        want_this_issue = self._include_by_default
         for (klass, want_this_issue_type) in self.klasses:
             if isinstance(issue, klass):
                 want_this_issue = want_this_issue_type
