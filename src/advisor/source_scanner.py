@@ -1,5 +1,5 @@
 """
-Copyright 2017-2019 Arm Ltd.
+Copyright 2017-2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ class SourceScanner(Scanner):
         r'^\s*#\s*pragma\s+simd\s+')
     """Regular expression to match #pragma simd directives."""
 
-    def __init__(self):
+    def __init__(self, filter_ported_code=True):
         self.ported_inline_asm = 0
         self.aarch64_intrinsic_inline_asm_files = set()
         """Files containing aarch64-specific intrinsics or inline assembly."""
@@ -72,6 +72,9 @@ class SourceScanner(Scanner):
         """Files containing other architecture specific intrinsics or inline assembly."""
         self.other_arch_intrinsic_inline_asm_functions = {}
         """Functions containing other architecture specific intrinsics or inline assembly."""
+        self.filter_ported_code = filter_ported_code
+        """Should architecture-specific code that appears to have an aarch64
+        equivalent be filtered out?"""
 
     def accepts_file(self, filename):
         _, ext = os.path.splitext(filename)
@@ -162,7 +165,7 @@ class SourceScanner(Scanner):
                 avx_512_match = SourceScanner.AVX_512_ARCH_INTRINSICS_RE_PROG.search(line)
                 if other_match and not arm_match:
                     intrinsic = other_match.group(1)
-                    if not naive_cpp.in_other_arch_specific_code():
+                    if not naive_cpp.in_other_arch_specific_code() or not self.filter_ported_code:
                         if avx_256_match:
                             report.add_issue(Avx256IntrinsicIssue(
                                 filename, lineno, intrinsic, function=function))
@@ -184,9 +187,9 @@ class SourceScanner(Scanner):
                     if function:
                         self.aarch64_intrinsic_inline_asm_functions.add(function)
 
-        if not found_aarch64_inline_asm:
+        if not found_aarch64_inline_asm or not self.filter_ported_code:
             for issue in inline_asm_issues:
-                if not issue.function or not issue.function in self.aarch64_functions:
+                if not issue.function or not issue.function in self.aarch64_functions or not self.filter_ported_code:
                     report.add_issue(issue)
         for issue in preprocessor_errors:
             report.add_issue(issue)
@@ -194,7 +197,7 @@ class SourceScanner(Scanner):
     def finalize_report(self, report):
         for function in self.other_arch_intrinsic_inline_asm_functions:
             if function in self.aarch64_functions:
-                if not function in self.aarch64_intrinsic_inline_asm_functions:
+                if not function in self.aarch64_intrinsic_inline_asm_functions or not self.filter_ported_code:
                     report.add_issue(self.other_arch_intrinsic_inline_asm_functions[function])
                 else:
                     report.ported_inline_asm += 1
@@ -205,7 +208,7 @@ class SourceScanner(Scanner):
         for fname in self.other_arch_intrinsic_inline_asm_files:
             port_file = find_port_file(
                 fname, report.source_files, report.source_dirs)
-            if port_file and port_file not in self.aarch64_intrinsic_inline_asm_files:
+            if (port_file and port_file not in self.aarch64_intrinsic_inline_asm_files) or not self.filter_ported_code:
                 report.add_issue(self.other_arch_intrinsic_inline_asm_files[fname])
             else:
                 report.ported_inline_asm += 1

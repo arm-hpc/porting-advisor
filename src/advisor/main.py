@@ -62,6 +62,9 @@ def main():
                         default='.')
     parser.add_argument('--issue-types',
                         help=_('modify the types of issue that are reported (default: %s)') % IssueTypeConfig.DEFAULT_FILTER)
+    parser.add_argument('--no-filter', action='store_true',
+                        help=_("don't filter architecture-specific code that appears to have an aarch64 equivalent"),
+                        default=False)
     parser.add_argument('--no-progress', action='store_false',
                         help=("don't show progress bar"),
                         dest='progress')
@@ -108,7 +111,7 @@ def main():
     report_factory = ReportFactory()
     report = report_factory.createReport(args.root, target_os=args.target_os, issue_type_config=args.issue_types, output_format=args.output_format)
 
-    scanners = Scanners(args.issue_types)
+    scanners = Scanners(args.issue_types, filter_ported_code=not args.no_filter)
     scanners.initialize_report(report)
 
     scanner = AutoScanner(scanners)
