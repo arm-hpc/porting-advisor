@@ -208,3 +208,8 @@ OTHER_ARCH_INTRINSICS = [r'_addcary\w+',
                          r'vec_v\w+',
                          r'_otherarch_intrinsic_\w+']
 """List of non-Arm architecture-specific intrinsics."""
+
+AVX_256_INTRINSICS = [r'_mm256(?:[0-9]+)?_\w+']
+"""List of AVX-256 instructions intrinsics."""
+AVX_512_INTRINSICS = [r'_mm512(?:[0-9]+)?_\w+']
+"""List of AVX-512 instructions intrinsics."""

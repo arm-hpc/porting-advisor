@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2017-2018,2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,22 @@ from .localization import _
 class IntrinsicIssue(Issue):
     def __init__(self, filename, lineno, intrinsic, function=None):
         description = _("architecture-specific intrinsic: %s") % intrinsic
+        super().__init__(description=description, filename=filename,
+                         lineno=lineno,
+                         function=function)
+
+class Avx256IntrinsicIssue(Issue):
+    """Class for AVX-256 intrinsic issues"""
+    def __init__(self, filename, lineno, intrinsic, function=None):
+        description = _("architecture-specific AVX-256 intrinsic: %s") % intrinsic
+        super().__init__(description=description, filename=filename,
+                         lineno=lineno,
+                         function=function)
+
+class Avx512IntrinsicIssue(Issue):
+    """Class for AVX-512 intrinsic issues"""
+    def __init__(self, filename, lineno, intrinsic, function=None):
+        description = _("architecture-specific AVX-512 intrinsic: %s") % intrinsic
         super().__init__(description=description, filename=filename,
                          lineno=lineno,
                          function=function)

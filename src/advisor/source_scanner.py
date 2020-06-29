@@ -23,8 +23,8 @@ from .compiler_specific_issue import CompilerSpecificIssue
 from .continuation_parser import ContinuationParser
 from .find_port import find_port_file, is_aarch64_specific_file_name
 from .inline_asm_issue import InlineAsmIssue
-from .intrinsic_issue import IntrinsicIssue
-from .intrinsics import ARM_INTRINSICS, OTHER_ARCH_INTRINSICS
+from .intrinsic_issue import IntrinsicIssue, Avx256IntrinsicIssue, Avx512IntrinsicIssue
+from .intrinsics import ARM_INTRINSICS, OTHER_ARCH_INTRINSICS, AVX_256_INTRINSICS, AVX_512_INTRINSICS
 from .naive_comment_parser import NaiveCommentParser
 from .naive_cpp import NaiveCpp, PreprocessorDirective
 from .naive_function_parser import NaiveFunctionParser
@@ -49,6 +49,10 @@ class SourceScanner(Scanner):
     OTHER_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
                                     '|'.join([(r'\b%s\b' % x) for x in OTHER_ARCH_INTRINSICS]))
     """Regular expression that matches architecture-specific intrinsics."""
+    AVX_256_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
+                                      '|'.join([(r'\b%s\b' % x) for x in AVX_256_INTRINSICS]))
+    AVX_512_ARCH_INTRINSICS_RE_PROG = re.compile(r'(%s)' %
+                                      '|'.join([(r'\b%s\b' % x) for x in AVX_512_INTRINSICS]))
     INLINE_ASM_RE_PROG = re.compile(
         r'(^|\s)(__asm__|asm)(\s+volatile)?(\s+goto)?\(')
     """Regular expression that matches inline assembly."""
@@ -154,11 +158,20 @@ class SourceScanner(Scanner):
 
                 arm_match = SourceScanner.ARM_INTRINSICS_RE_PROG.search(line)
                 other_match = SourceScanner.OTHER_ARCH_INTRINSICS_RE_PROG.search(line)
+                avx_256_match = SourceScanner.AVX_256_ARCH_INTRINSICS_RE_PROG.search(line)
+                avx_512_match = SourceScanner.AVX_512_ARCH_INTRINSICS_RE_PROG.search(line)
                 if other_match and not arm_match:
                     intrinsic = other_match.group(1)
                     if not naive_cpp.in_other_arch_specific_code():
-                        report.add_issue(IntrinsicIssue(
-                            filename, lineno, intrinsic, function=function))
+                        if avx_256_match:
+                            report.add_issue(Avx256IntrinsicIssue(
+                                filename, lineno, intrinsic, function=function))
+                        elif avx_512_match:
+                            report.add_issue(Avx512IntrinsicIssue(
+                                filename, lineno, intrinsic, function=function))
+                        else:
+                            report.add_issue(IntrinsicIssue(
+                                filename, lineno, intrinsic, function=function))
                     if not filename in self.other_arch_intrinsic_inline_asm_files:
                         self.other_arch_intrinsic_inline_asm_files[filename] = \
                             NoEquivalentIntrinsicIssue(filename, lineno, intrinsic)
