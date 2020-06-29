@@ -75,7 +75,6 @@ Available issue types:
   DefineOtherArch, HostCpuDetection, InlineAsm, Intrinsic,
   NoEquivalent, NoEquivalentInlineAsm, NoEquivalentIntrinsic, OldCrt,
   PragmaSimd, PreprocessorError
-
 ```
 
 Caveats

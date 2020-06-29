@@ -21,24 +21,21 @@ from .localization import _
 
 
 class IntrinsicIssue(Issue):
-    def __init__(self, filename, lineno, intrinsic, function=None):
-        description = _("architecture-specific intrinsic: %s") % intrinsic
+    def __init__(self, filename, lineno, intrinsic, function=None, description=None):
+        if not description:
+            description = _("architecture-specific intrinsic: %s") % intrinsic
         super().__init__(description=description, filename=filename,
                          lineno=lineno,
                          function=function)
 
-class Avx256IntrinsicIssue(Issue):
+class Avx256IntrinsicIssue(IntrinsicIssue):
     """Class for AVX-256 intrinsic issues"""
     def __init__(self, filename, lineno, intrinsic, function=None):
         description = _("architecture-specific AVX-256 intrinsic: %s") % intrinsic
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno,
-                         function=function)
+        super().__init__(filename, lineno, intrinsic, function, description)
 
-class Avx512IntrinsicIssue(Issue):
+class Avx512IntrinsicIssue(IntrinsicIssue):
     """Class for AVX-512 intrinsic issues"""
     def __init__(self, filename, lineno, intrinsic, function=None):
         description = _("architecture-specific AVX-512 intrinsic: %s") % intrinsic
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno,
-                         function=function)
+        super().__init__(filename, lineno, intrinsic, function, description)
