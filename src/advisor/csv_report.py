@@ -28,6 +28,6 @@ class CsvReport(Report):
         header = ['filename', 'function', 'line', 'issue_type', 'description']
         csv_writer.writerow(header)
         for item in items:
-            issue_type = re.sub('Issue$', '', item.__class__.__name__)
+            issue_type = item.__class__.display_name()
             row = [item.filename, item.function, item.lineno, issue_type, item.description]
             csv_writer.writerow(row)

@@ -28,3 +28,4 @@ class TestReportFactory(unittest.TestCase):
         self.assertEquals(report_factory.output_format_for_extension('html'), ReportOutputFormat.HTML)
         self.assertEquals(report_factory.output_format_for_extension('htm'), ReportOutputFormat.HTML)
         self.assertEquals(report_factory.output_format_for_extension('json'), ReportOutputFormat.JSON)
+        self.assertEquals(report_factory.output_format_for_extension('csv'), ReportOutputFormat.CSV)

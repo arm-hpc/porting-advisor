@@ -39,7 +39,8 @@ class ReportFactory:
         'json': ReportOutputFormat.JSON,
         'html': ReportOutputFormat.HTML,
         'htm' : ReportOutputFormat.HTML,
-        'txt' : ReportOutputFormat.TEXT
+        'txt' : ReportOutputFormat.TEXT,
+        'csv' : ReportOutputFormat.CSV
     }
     """ Dictionary mapping file extension to output format.
 
