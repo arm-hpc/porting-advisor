@@ -93,6 +93,7 @@ def main():
     elif not os.path.isdir(args.root):
         print(_('%s: not a directory.') % args.root, file=sys.stderr)
         sys.exit(1)
+    print_footer = False
     report_factory = ReportFactory()
     print_footer = False
     try:
