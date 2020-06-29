@@ -165,7 +165,7 @@ class SourceScanner(Scanner):
                 avx_512_match = SourceScanner.AVX_512_ARCH_INTRINSICS_RE_PROG.search(line)
                 if other_match and not arm_match:
                     intrinsic = other_match.group(1)
-                    if not naive_cpp.in_other_arch_specific_code() or not self.filter_ported_code:
+                    if not self.filter_ported_code or not naive_cpp.in_other_arch_specific_code():
                         if avx_256_match:
                             report.add_issue(Avx256IntrinsicIssue(
                                 filename, lineno, intrinsic, function=function))
@@ -187,9 +187,9 @@ class SourceScanner(Scanner):
                     if function:
                         self.aarch64_intrinsic_inline_asm_functions.add(function)
 
-        if not found_aarch64_inline_asm or not self.filter_ported_code:
+        if not self.filter_ported_code or not found_aarch64_inline_asm:
             for issue in inline_asm_issues:
-                if not issue.function or not issue.function in self.aarch64_functions or not self.filter_ported_code:
+                if not self.filter_ported_code or not issue.function or not issue.function in self.aarch64_functions:
                     report.add_issue(issue)
         for issue in preprocessor_errors:
             report.add_issue(issue)
@@ -197,7 +197,7 @@ class SourceScanner(Scanner):
     def finalize_report(self, report):
         for function in self.other_arch_intrinsic_inline_asm_functions:
             if function in self.aarch64_functions:
-                if not function in self.aarch64_intrinsic_inline_asm_functions or not self.filter_ported_code:
+                if not self.filter_ported_code or not function in self.aarch64_intrinsic_inline_asm_functions:
                     report.add_issue(self.other_arch_intrinsic_inline_asm_functions[function])
                 else:
                     report.ported_inline_asm += 1
@@ -208,7 +208,7 @@ class SourceScanner(Scanner):
         for fname in self.other_arch_intrinsic_inline_asm_files:
             port_file = find_port_file(
                 fname, report.source_files, report.source_dirs)
-            if (port_file and port_file not in self.aarch64_intrinsic_inline_asm_files) or not self.filter_ported_code:
+            if not self.filter_ported_code or (port_file and port_file not in self.aarch64_intrinsic_inline_asm_files):
                 report.add_issue(self.other_arch_intrinsic_inline_asm_files[fname])
             else:
                 report.ported_inline_asm += 1

@@ -43,9 +43,9 @@ class Scanners:
                          ConfigGuessScanner(),
                          MakefileScanner()]
         self.filters = [PortFilter()] if filter_ported_code else []
-        self.filters +=  [IssueTypeFilter(issue_type_config),
-                          TargetOsFilter(),
-                          OtherIssuesFilter()]
+        self.filters += [IssueTypeFilter(issue_type_config),
+                         TargetOsFilter(),
+                         OtherIssuesFilter()]
 
     def initialize_report(self, report):
         """Initializes the given report for scanning.
