@@ -27,4 +27,9 @@ for (module_loader, name, ispkg) in pkgutil.iter_modules([pkg_dir]):
     if name.endswith('_issue'):
         importlib.import_module('.' + name, __package__)
 
-ISSUE_TYPES = {cls.display_name(): cls for cls in Issue.__subclasses__()}
+def _transitive_closure(cls):
+    subclasses = cls.__subclasses__()
+    return subclasses + [descendant for subcls in subclasses for descendant in _transitive_closure(subcls)]
+
+ISSUE_TYPES = {cls.display_name(): cls for cls in _transitive_closure(Issue)}
+

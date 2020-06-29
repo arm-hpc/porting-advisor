@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from .issue import Issue
-from .localization import _
-from .report_item import ReportItem
+from advisor.compiler_specific_issue import CompilerSpecificIssue
+from advisor.report_item import ReportItem
+
+import unittest
 
 
-class CompilerSpecificIssue(Issue):
-    def __init__(self, filename, lineno, compiler, function=None):
-        description = _("compiler specific code: %s") % compiler
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEUTRAL,
-                         function=function)
+class TestItemType(unittest.TestCase):
+    def test_compiler_specific_issue(self):
+        issue = CompilerSpecificIssue('filename', 123, 'compiler', 'function')
+        self.assertEquals(issue.item_type, ReportItem.NEUTRAL)

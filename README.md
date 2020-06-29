@@ -70,10 +70,10 @@ Use:
     architectures.
 
 Available issue types:
-  ArchSpecificLibrary, AsmSource, CompilerSpecific, ConfigGuess,
-  CrossCompile, DefineOtherArch, InlineAsm, Intrinsic, NoEquivalent,
-  OldCrt, PragmaSimd, PreprocessorError
-
+  ArchSpecificLibrary, AsmSource, BuildCommand, CompilerSpecific,
+  ConfigGuess, CrossCompile, DefineOtherArch, HostCpuDetection,
+  InlineAsm, Intrinsic, NoEquivalent, NoEquivalentInlineAsm,
+  NoEquivalentIntrinsic, OldCrt, PragmaSimd, PreprocessorError
 ```
 
 Caveats
