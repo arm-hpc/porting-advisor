@@ -16,11 +16,11 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class AsmSourceIssue(ReportItem):
+class AsmSourceIssue(Issue):
     def __init__(self, filename):
         description = _("architecture-specific assembly source file")
-        super().__init__(description=description, filename=filename, item_type=ReportItem.NEGATIVE)
+        super().__init__(description=description, filename=filename)

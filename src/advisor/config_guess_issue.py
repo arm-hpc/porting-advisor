@@ -16,14 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class ConfigGuessIssue(ReportItem):
+class ConfigGuessIssue(Issue):
     def __init__(self, filename):
         description = _(
             'autoconf config.guess needs updating to recognize aarch64 architecture')
         super().__init__(filename=filename,
-                         description=description,
-                         item_type=ReportItem.NEGATIVE)
+                         description=description)

@@ -30,20 +30,20 @@ class Scanners:
     """Set of scanners that may be used to scan for potential porting issues in
     files."""
 
-    def __init__(self, issue_type_filter):
+    def __init__(self, issue_type_config):
         """Initializes the set of scanners that may be used to scan for
         potential porting issues in files.
 
         Args:
-            issue_type_filter (str): Configuration string to control the issue
-            type filter.
+            issue_type_config (IssueTypeConfig): issue type filter
+            configuration.
         """
         self.scanners = [SourceScanner(),
                          AsmSourceScanner(),
                          ConfigGuessScanner(),
                          MakefileScanner()]
         self.filters = [PortFilter(),
-                        IssueTypeFilter(issue_type_filter),
+                        IssueTypeFilter(issue_type_config),
                         TargetOsFilter(),
                         OtherIssuesFilter()]
 

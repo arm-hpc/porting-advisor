@@ -24,6 +24,11 @@ import os
 class HtmlReport(Report):
     """Generates an HTML report from a template."""
 
+    def write(self, output_file, report_errors=True, report_remarks=True, include_summary=True):
+        """ Override write to report all items."""
+        super().write(output_file, report_errors=report_errors,
+                      report_remarks=report_remarks, include_summary=include_summary)
+
     def write_items(self, output_file, items):
         env = Environment(
             loader=PackageLoader('advisor', 'templates'),

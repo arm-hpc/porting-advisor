@@ -16,6 +16,7 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+import csv
 import os
 
 from .files_scanned_remark import FilesScannedRemark
@@ -23,13 +24,11 @@ from .no_issues_found_remark import NoIssuesFoundRemark
 from .report_item import ReportItem
 import json
 
-
 class Report:
-    def __init__(self, root_directory, report_errors=True, target_os='linux'):
+    def __init__(self, root_directory, target_os='linux'):
         self.issues = []
         self.errors = []
         self.remarks = []
-        self.report_errors = report_errors
         self.root_directory = root_directory
         self.source_files = []
         self.source_dirs = set()
@@ -48,33 +47,28 @@ class Report:
     def add_error(self, error):
         self.errors.append(error)
 
-    def write(self, output_file):
+    def write(self, output_file, report_errors=False, report_remarks=False, include_summary=False):
         items = {}
         for item_type in ReportItem.TYPES:
             items[item_type] = []
-        all_items = self.remarks + self.issues
-        if self.report_errors:
+        all_items = []
+        if report_remarks:
+            all_items += self.remarks
+        all_items += self.issues
+        if report_errors:
             all_items += self.errors
         for item in all_items:
             items[item.item_type].append(item)
-        items[ReportItem.SUMMARY].append(
-            FilesScannedRemark(len(self.source_files)))
-        if not items[ReportItem.NEGATIVE] and not items[ReportItem.NEUTRAL]:
-            items[ReportItem.POSITIVE].append(NoIssuesFoundRemark())
+        if include_summary:
+            items[ReportItem.SUMMARY].append(
+                FilesScannedRemark(len(self.source_files)))
+            if not items[ReportItem.NEGATIVE] and not items[ReportItem.NEUTRAL] and report_remarks:
+                items[ReportItem.POSITIVE].append(NoIssuesFoundRemark())
         sorted_items = []
         for item_type in ReportItem.TYPES:
             sorted_items += sorted(items[item_type], key=lambda item: (
                 (item.filename if item.filename else '') + ':' + item.description))
         self.write_items(output_file, sorted_items)
-
-    def write_json(self, output_file, issue_types):
-        self.issue_types = issue_types
-        # munge 'self' fields so it can be serialized
-        self.source_dirs = list(self.source_dirs)
-        self.issues = [i.__class__.__name__ + ': ' + str(i) for i in self.issues]
-        self.errors = [i.__class__.__name__ + ': ' + str(i) for i in self.errors]
-        self.remarks = [i.__class__.__name__ + ': ' + str(i) for i in self.remarks]
-        print(json.dumps(self.__dict__, sort_keys=True, indent=4), file=output_file)
 
     def write_items(self, output_file, items):
         for item in items:

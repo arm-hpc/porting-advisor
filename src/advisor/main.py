@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2017-2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ SPDX-License-Identifier: Apache-2.0
 
 import advisor
 from advisor.auto_scanner import AutoScanner
-from advisor.html_report import HtmlReport
-from advisor.issue_type_filter import IssueTypeFilter
+from advisor.issue_type_config import IssueTypeConfig
 from advisor.issue_types import ISSUE_TYPES
 from advisor.localization import _
 from advisor.report import Report
+from advisor.report_factory import ReportOutputFormat, ReportFactory
 from advisor.scanners import Scanners
 from progressbar import ProgressBar, UnknownLength
 from progressbar.widgets import AnimatedMarker, Timer, Widget
@@ -61,18 +61,20 @@ def main():
                         help=_('root directory of source tree (default: .)'),
                         default='.')
     parser.add_argument('--issue-types',
-                        help=_('modify the types of issue that are reported (default: %s)') % IssueTypeFilter.DEFAULT_FILTER)
+                        help=_('modify the types of issue that are reported (default: %s)') % IssueTypeConfig.DEFAULT_FILTER)
     parser.add_argument('--no-progress', action='store_false',
                         help=("don't show progress bar"),
                         dest='progress')
     parser.add_argument('--output',
                         help=_('output file name'),
                         default=None)
+    parser.add_argument('--output-format',
+                        help=_('output format: %s (default: %s)') % \
+                            (','.join(str(output_format.value) for output_format in ReportOutputFormat),
+                             ReportOutputFormat.DEFAULT.value),
+                        default=ReportOutputFormat.DEFAULT.value)
     parser.add_argument('--quiet', action='store_true',
                         help=_('suppress file errors'),
-                        default=False)
-    parser.add_argument('--json', action='store_true',
-                        help=_('output verbose results as json'),
                         default=False)
     parser.add_argument('--target-os',
                         help=_('target operating system: all,linux,windows (default: %s)') % default_os,
@@ -88,11 +90,23 @@ def main():
     elif not os.path.isdir(args.root):
         print(_('%s: not a directory.') % args.root, file=sys.stderr)
         sys.exit(1)
+    try:
+        args.output_format = ReportOutputFormat(args.output_format)
+        if args.output_format == ReportOutputFormat.AUTO:
+            if not args.output:
+                args.output_format = ReportOutputFormat.TEXT
+            else:
+                # Take the output format from the output file extension.
+                ext = os.path.splitext(args.output)[1][1:]
+                args.output_format = ext.lower() # for the error reporting
+                args.output_format = ReportOutputFormat(args.output_format)
+    except ValueError:
+        print(_('%s: invalid output format') % args.output_format, file=sys.stderr)
+        sys.exit(1)
+    args.issue_types = IssueTypeConfig(args.issue_types)
 
-    if not args.output:
-        report = Report(args.root, report_errors=not args.quiet, target_os=args.target_os)
-    else:
-        report = HtmlReport(args.root, report_errors=not args.quiet, target_os=args.target_os)
+    report_factory = ReportFactory()
+    report = report_factory.createReport(args.root, target_os=args.target_os, issue_type_config=args.issue_types, output_format=args.output_format)
 
     scanners = Scanners(args.issue_types)
     scanners.initialize_report(report)
@@ -128,16 +142,10 @@ def main():
 
     if args.output:
         with open(args.output, 'w') as f:
-            if args.json:
-                report.write_json(f, args.issue_types)
-            else:
-                report.write(f)
+            report.write(f, report_errors=not args.quiet)
     else:
-        if args.json:
-            report.write_json(sys.stdout, args.issue_types)
-        else:
-            report.write(sys.stdout)
-            print('\nUse --output FILENAME.html to generate an HTML report.')
+        report.write(sys.stdout, report_errors=not args.quiet)
+        print('\nUse --output FILENAME.html to generate an HTML report.')
 
 
 if __name__ == '__main__':

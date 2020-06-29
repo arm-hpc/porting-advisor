@@ -16,13 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class OldCrtIssue(ReportItem):
+class OldCrtIssue(Issue):
     def __init__(self, filename, lineno, lib_name):
         description = _("links with old C runtime, prefer Universal CRT: %s") % \
             lib_name
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno)

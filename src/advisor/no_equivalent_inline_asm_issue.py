@@ -18,12 +18,11 @@ SPDX-License-Identifier: Apache-2.0
 
 from .localization import _
 from .no_equivalent_issue import NoEquivalentIssue
-from .report_item import ReportItem
 
 
 class NoEquivalentInlineAsmIssue(NoEquivalentIssue):
     def __init__(self, filename, lineno, function=None):
         description = _("architecture-specific inline assembly used on other architecture(s), but not on Arm")
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         lineno=lineno,
                          function=function)

@@ -1,5 +1,5 @@
 """
-Copyright 2018 Arm Ltd.
+Copyright 2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from .localization import _
-from .cross_compile_issue import CrossCompileIssue
+from .report_item import ReportItem
+import re
 
+class Issue(ReportItem):
+    """Base class for issues."""
 
-class HostCpuDetectionIssue(CrossCompileIssue):
-    def __init__(self, filename, lineno, condition):
-        description = _("condition checks host CPU (not cross-compile friendly): %s") % \
-            condition
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno)
+    def __init__(self, description, filename=None, lineno=None, item_type=ReportItem.NEGATIVE, function=None):
+        super().__init__(description, filename=filename, lineno=lineno, item_type=item_type, function=function)
+
+    @classmethod
+    def display_name(cls):
+        """Return the display name for the given issue class."""
+        return re.sub('Issue$', '', cls.__name__)

@@ -30,9 +30,10 @@ Usage
 -----
 
 ```
-usage: porting-advisor [-h] [--issue-types ISSUE_TYPES] [--no-progress]
-                       [--output OUTPUT] [--quiet] [--target-os TARGET_OS]
-                       [--version]
+usage: porting-advisor [-h] [--csv] [--csv-schema-type CSV_SCHEMA_TYPE]
+                       [--issue-types ISSUE_TYPES] [--no-progress]
+                       [--output OUTPUT] [--quiet] [--json]
+                       [--target-os TARGET_OS] [--version]
                        DIRECTORY
 
 Produces an aarch64 porting readiness report.
@@ -42,12 +43,18 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  --csv                 output verbose results as CSV
+  --csv-schema-type CSV_SCHEMA_TYPE
+                        CSV schema type:
+                        CsvSchemaType.ISSUES,CsvSchemaType.TOTALS (default:
+                        CsvSchemaType.ISSUES)
   --issue-types ISSUE_TYPES
                         modify the types of issue that are reported (default:
                         -CompilerSpecific,-CrossCompile,-NoEquivalent)
   --no-progress         don't show progress bar
   --output OUTPUT       output file name
   --quiet               suppress file errors
+  --json                output verbose results as json
   --target-os TARGET_OS
                         target operating system: all,linux,windows (default:
                         linux)
@@ -66,6 +73,7 @@ Available issue types:
   ArchSpecificLibrary, AsmSource, CompilerSpecific, ConfigGuess,
   CrossCompile, DefineOtherArch, InlineAsm, Intrinsic, NoEquivalent,
   OldCrt, PragmaSimd, PreprocessorError
+
 ```
 
 Caveats
@@ -78,7 +86,7 @@ files that appear in the source tree but are excluded by the build system.
 License
 -------
 
-Copyright 2017-2019 Arm Ltd.
+Copyright 2017-2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

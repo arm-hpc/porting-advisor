@@ -16,11 +16,12 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
 from .report_item import ReportItem
 
 
-class PragmaSimdIssue(ReportItem):
+class PragmaSimdIssue(Issue):
     def __init__(self, filename, lineno, pragma, function=None):
         description = _("simd pragma: %s") % pragma
         super().__init__(description=description, filename=filename,

@@ -16,13 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class CompilerSpecificIssue(ReportItem):
+class CompilerSpecificIssue(Issue):
     def __init__(self, filename, lineno, compiler, function=None):
         description = _("compiler specific code: %s") % compiler
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEUTRAL,
+                         lineno=lineno,
                          function=function)

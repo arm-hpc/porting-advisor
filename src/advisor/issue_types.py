@@ -16,16 +16,15 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from .report_item import ReportItem
+from .issue import Issue
 
 import importlib
 import os
 import pkgutil
-import re
 
 pkg_dir = os.path.dirname(__file__)
 for (module_loader, name, ispkg) in pkgutil.iter_modules([pkg_dir]):
     if name.endswith('_issue'):
         importlib.import_module('.' + name, __package__)
 
-ISSUE_TYPES = {re.sub('Issue$', '', cls.__name__): cls for cls in ReportItem.__subclasses__() if cls.__name__.endswith('Issue')}
+ISSUE_TYPES = {cls.display_name(): cls for cls in Issue.__subclasses__()}

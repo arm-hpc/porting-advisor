@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Arm Ltd.
+Copyright 2017-2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,63 +19,20 @@ SPDX-License-Identifier: Apache-2.0
 import sys
 
 
-from .issue_types import ISSUE_TYPES
+from .issue_type_config import IssueTypeConfig
 from .report_item import ReportItem
 from .scanner import Scanner
 
 class IssueTypeFilter(Scanner):
     """Filters issues by type."""
 
-    DEFAULT_FILTER = '-CompilerSpecific,-CrossCompile,-NoEquivalent'
-    """Default issue filter. This is always prepended to the filter supplied
-    on the command line."""
-
-    def __init__(self, config_string):
+    def __init__(self, issue_type_config):
         """Filters issues by type.
 
         Args:
-            config_str (str): The filter configuration string.
-            This is a comma-separated list of issue types to report. Alternatively
-            the configuration string may be used to add or remove issues from the
-            default filter. In this case issue types prefixed with '-' are removed
-            by the filter. Issue types prefixed with '+' are included by the filter.
+            issue_type_config (IssueTypeConfig): issue type filter configuration
         """
-        if config_string and not config_string.startswith('+') and not config_string.startswith('-'):
-            # User wants to replace the default list.
-            pass
-        elif config_string:
-            config_string = IssueTypeFilter.DEFAULT_FILTER + ',' + config_string
-        else:
-            config_string = IssueTypeFilter.DEFAULT_FILTER
-
-        issue_types = config_string.split(',')
-        self.klasses = []
-        for issue_type in issue_types:
-            if not issue_type:
-                continue
-
-            if issue_type.startswith('-'):
-                want_this_issue_type = False
-                issue_type = issue_type[1:]
-            elif issue_type.startswith('+'):
-                want_this_issue_type = True
-                issue_type = issue_type[1:]
-            else:
-                want_this_issue_type = True
-
-            try:
-                klass = ISSUE_TYPES[issue_type]
-                self.klasses.append((klass, want_this_issue_type))
-            except KeyError:
-                print('Issue type filter: unknown issue type: %s' % issue_type, file=sys.stderr)
+        self.issue_type_config = issue_type_config
 
     def finalize_report(self, report):
-        filtered_issues = list()
-        for issue in report.issues:
-            want_this_issue = True
-            for (klass, want_this_issue_type) in self.klasses:
-                if isinstance(issue, klass):
-                    want_this_issue = want_this_issue_type
-            if want_this_issue:
-                filtered_issues.append(issue)
-        report.issues = filtered_issues
+        report.issues = [issue for issue in report.issues if self.issue_type_config.include_issue_p(issue)]

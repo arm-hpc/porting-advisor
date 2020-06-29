@@ -1,5 +1,5 @@
 """
-Copyright 2017 Arm Ltd.
+Copyright 2017,2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class ArchSpecificLibraryIssue(ReportItem):
+class ArchSpecificLibraryIssue(Issue):
     def __init__(self, filename, lineno, lib_name):
         description = _("architecture-specific library is not available on aarch64: lib%s") % \
             lib_name
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno)

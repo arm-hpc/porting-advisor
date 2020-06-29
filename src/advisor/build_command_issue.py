@@ -18,7 +18,6 @@ SPDX-License-Identifier: Apache-2.0
 
 from .localization import _
 from .cross_compile_issue import CrossCompileIssue
-from .report_item import ReportItem
 
 
 class BuildCommandIssue(CrossCompileIssue):
@@ -27,4 +26,4 @@ class BuildCommandIssue(CrossCompileIssue):
         description = _("build target is run at build time (not cross-compile friendly): %s") % \
             target
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno)

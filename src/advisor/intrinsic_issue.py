@@ -16,13 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class IntrinsicIssue(ReportItem):
+class IntrinsicIssue(Issue):
     def __init__(self, filename, lineno, intrinsic, function=None):
         description = _("architecture-specific intrinsic: %s") % intrinsic
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE,
+                         lineno=lineno,
                          function=function)

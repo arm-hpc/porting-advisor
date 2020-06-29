@@ -1,5 +1,5 @@
 """
-Copyright 2018 Arm Ltd.
+Copyright 2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from .localization import _
-from .cross_compile_issue import CrossCompileIssue
+from .report import Report
 
+class TextReport(Report):
+    """Generates a text report."""
 
-class HostCpuDetectionIssue(CrossCompileIssue):
-    def __init__(self, filename, lineno, condition):
-        description = _("condition checks host CPU (not cross-compile friendly): %s") % \
-            condition
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno)
+    def write(self, output_file, report_errors=True, report_remarks=True, include_summary=True):
+        """ Override write to report all items."""
+        super().write(output_file, report_errors=report_errors,
+                      report_remarks=report_remarks, include_summary=include_summary)

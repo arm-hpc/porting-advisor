@@ -1,5 +1,5 @@
 """
-Copyright 2018 Arm Ltd.
+Copyright 2020 Arm Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,18 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
-from .localization import _
-from .cross_compile_issue import CrossCompileIssue
+from .report import Report
+import csv
+import re
 
+class CsvReport(Report):
+    """Generates a CSV report."""
 
-class HostCpuDetectionIssue(CrossCompileIssue):
-    def __init__(self, filename, lineno, condition):
-        description = _("condition checks host CPU (not cross-compile friendly): %s") % \
-            condition
-        super().__init__(description=description, filename=filename,
-                         lineno=lineno)
+    def write_items(self, output_file, items):
+        csv_writer = csv.writer(output_file)
+        header = ['filename', 'function', 'line', 'issue_type', 'description']
+        csv_writer.writerow(header)
+        for item in items:
+            issue_type = re.sub('Issue$', '', item.__class__.__name__)
+            row = [item.filename, item.function, item.lineno, issue_type, item.description]
+            csv_writer.writerow(row)

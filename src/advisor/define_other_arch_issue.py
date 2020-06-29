@@ -16,13 +16,13 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
-from .report_item import ReportItem
 
 
-class DefineOtherArchIssue(ReportItem):
+class DefineOtherArchIssue(Issue):
     def __init__(self, filename, lineno, define):
         description = _("hard-coded architecture-specific define: %s") % \
             define
         super().__init__(description=description, filename=filename,
-                         lineno=lineno, item_type=ReportItem.NEGATIVE)
+                         lineno=lineno)

@@ -16,10 +16,11 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 """
 
+from .issue import Issue
 from .localization import _
 from .report_item import ReportItem
 
 
-class CrossCompileIssue(ReportItem):
+class CrossCompileIssue(Issue):
     def __init__(self, description, filename=None, lineno=None, item_type=ReportItem.NEUTRAL, function=None):
         super().__init__(description, filename=filename, lineno=lineno, item_type=item_type, function=function)
