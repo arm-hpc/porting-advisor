@@ -31,7 +31,7 @@ import os
 import sys
 import textwrap
 
-def main():
+def main(argv=sys.argv[1:]):
     default_os = os.name
     if default_os == 'nt':
         default_os = 'windows'
@@ -85,7 +85,7 @@ def main():
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + advisor.__version__)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not os.path.exists(args.root):
         print(_('%s: directory not found.') % args.root, file=sys.stderr)
@@ -155,4 +155,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(s)
