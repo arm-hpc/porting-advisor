@@ -195,7 +195,7 @@ class TestSourceScanner(unittest.TestCase):
         source_scanner.scan_file_object(
             'test.c', io_object, report)
         source_scanner.finalize_report(report)
-        self.assertEqual(len(report.issues), 1)
+        self.assertEqual(len(report.issues), 2)
 
     def test_equivalent_inline_asm_function_outline(self):
         source_scanner = SourceScanner()

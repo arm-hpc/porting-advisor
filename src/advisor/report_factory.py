@@ -61,7 +61,7 @@ class ReportFactory:
         elif output_format == ReportOutputFormat.CSV_ISSUE_TYPE_COUNT_BY_FILE:
             report = CsvIssueTypeCountByFileReport(root_directory, target_os=target_os, issue_type_config=issue_type_config)
         elif output_format == ReportOutputFormat.JSON:
-            report = JsonReport(root_directory, target_os=target_os)
+            report = JsonReport(root_directory, target_os=target_os, issue_type_config=issue_type_config)
         else:
             raise ValueError(output_format)
         return report

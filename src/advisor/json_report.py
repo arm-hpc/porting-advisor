@@ -22,8 +22,15 @@ import json
 class JsonReport(Report):
     """Generates a JSON report."""
 
+    def __init__(self, root_directory, target_os='linux', issue_type_config=None):
+        """Generates a JSON report.
+
+        issue_type_config (IssueTypeConfig): issue type filter configuration.
+        """
+        super().__init__(root_directory, target_os)
+        self.issue_types = issue_type_config.config_string if issue_type_config else None
+
     def write_items(self, output_file, items):
-        self.issue_types = issue_types
         # munge 'self' fields so it can be serialized
         self.source_dirs = list(self.source_dirs)
         self.issues = [i.__class__.__name__ + ': ' + str(i) for i in self.issues]

@@ -1,3 +1,7 @@
+1.4.1 2020-10-29
+
+  * Fix for https://github.com/arm-hpc/porting-advisor/issues/5.
+
 1.4 2020-07-03
 
   * Add `--output-format` command line argument to specify the output format.

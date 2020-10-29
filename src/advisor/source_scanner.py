@@ -208,7 +208,7 @@ class SourceScanner(Scanner):
         for fname in self.other_arch_intrinsic_inline_asm_files:
             port_file = find_port_file(
                 fname, report.source_files, report.source_dirs)
-            if not self.filter_ported_code or (port_file and port_file not in self.aarch64_intrinsic_inline_asm_files):
+            if not self.filter_ported_code or (not port_file or port_file not in self.aarch64_intrinsic_inline_asm_files):
                 report.add_issue(self.other_arch_intrinsic_inline_asm_files[fname])
             else:
                 report.ported_inline_asm += 1

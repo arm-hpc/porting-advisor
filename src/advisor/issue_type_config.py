@@ -51,6 +51,8 @@ class IssueTypeConfig:
             config_string = IssueTypeConfig.DEFAULT_FILTER
             self._include_by_default = True
 
+        self.config_string = config_string
+
         issue_types = config_string.split(',')
         self.klasses = []
         for issue_type in issue_types:
