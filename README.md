@@ -5,7 +5,7 @@ This tool scans for potential unported or non-portable code in source code
 trees.
 
 The following types of issue are reported by default:
-* Inline assembly with no corresponding aarch64 inlne assembly.
+* Inline assembly with no corresponding aarch64 inline assembly.
 * Asssembly source files with no corresponding aarch64 assembly source files.
 * Missing aarch64 architecture detection in autoconf config.guess scripts.
 * Linking against libraries that are not available on the aarch64 architecture.
